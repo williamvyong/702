@@ -3,13 +3,15 @@ package com.williamv.debtmake.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.williamv.debtmake.data.GreetingService
+import com.williamv.debtmake.ui.theme.DebtMakeTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -21,29 +23,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
-            AppContainer()
-        }
-    }
-
-    @Composable
-    private fun AppContainer() {
-        Scaffold(
-            modifier = Modifier.Companion.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.background,
-            content = {
-                GreetingScreen()
+            DebtMakeTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(text = greetingService.greet())
+                    }
+                }
             }
-        )
-    }
-
-    @Composable
-    private fun GreetingScreen() {
-        Text(
-            text = greetingService.greet(),
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.Companion.fillMaxSize()
-        )
+        }
     }
 }
