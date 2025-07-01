@@ -28,15 +28,15 @@ android {
         compose = true                      // ← 一定要打开
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
+        kotlinCompilerExtensionVersion = "1.5.5"
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_19
-        targetCompatibility = JavaVersion.VERSION_19
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "19"
+        jvmTarget = "17"
     }
 }
 
@@ -46,17 +46,15 @@ dependencies {
     androidTestImplementation(composeBom)
 
     // Compose BOM 管理
-    implementation(platform("androidx.compose:compose-bom:2023.09.00"))
     implementation("androidx.core:core-ktx:1.10.1")
     // 核心和 Activity
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose:1.8.0")
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.activity:activity-compose:1.8.0")
-
+    implementation("androidx.compose.compiler:compiler:1.5.5")
     // Compose UI
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.navigation:navigation-compose:2.7.0")
