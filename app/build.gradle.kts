@@ -2,8 +2,11 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
-    id("dagger.hilt.android.plugin")
+
 }
+
+apply(plugin = "dagger.hilt.android.plugin")
+
 
 android {
     namespace = "com.williamv.debtmake"
