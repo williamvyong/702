@@ -24,5 +24,7 @@ fun HomeScreen(onNavigateToDetails: (String) -> Unit) {
         Button(onClick = { onNavigateToDetails("42") }) {
             Text(text = "Go to Details")
         }
+
+        // —— 以后还可以在这里加更多按钮或列表 ——
     }
 }

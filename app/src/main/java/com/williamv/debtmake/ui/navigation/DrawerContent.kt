@@ -25,7 +25,6 @@ fun DrawerContent(
             .widthIn(max = 280.dp) // 最大宽度 280dp
             .padding(16.dp)
     ) {
-        // 循环渲染菜单项
         listOf(
             "Master Book" to "master_book_route",
             "Books" to "books_route",
@@ -38,12 +37,12 @@ fun DrawerContent(
         ).forEach { (label, route) ->
             Text(
                 text = label,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 12.dp)
                     .clickable {
-                        closeDrawer()       // 1. 先关闭抽屉
+                        closeDrawer()
                         navController.navigate(route) {
                             popUpTo("master_book_route") { saveState = true }
                             launchSingleTop = true

@@ -14,5 +14,7 @@ fun DetailsScreen(itemId: String) {
         contentAlignment = Alignment.Center
     ) {
         Text(text = "Details for item: $itemId")
+
+        // —— 以后在这里展示 collect/payout 逻辑界面 ——
     }
 }
