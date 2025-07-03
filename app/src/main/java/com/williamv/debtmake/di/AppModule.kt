@@ -1,19 +1,16 @@
 package com.williamv.debtmake.di
 
-import com.williamv.debtmake.data.GreetingService
-import com.williamv.debtmake.data.GreetingServiceImpl
-import dagger.Binds
+import com.williamv.debtmake.data.AuthService
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class AppModule {
-    @Binds
+object AppModule {
     @Singleton
-    abstract fun bindGreetingService(
-        impl: GreetingServiceImpl
-    ): GreetingService
+    @Provides
+    fun provideAuthService(): AuthService = AuthService()
 }
