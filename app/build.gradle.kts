@@ -1,7 +1,7 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
+    id("com.android.application")
+    kotlin("android")
     kotlin("kapt")
 }
 
@@ -28,6 +28,12 @@ android {
         jvmTarget = "17"
     }
 }
+kapt {
+    arguments {
+        arg("room.schemaLocation", "$projectDir/schemas")
+        arg("room.incremental", "true")
+    }
+}
 
 dependencies {
     // Compose BOM
@@ -45,9 +51,9 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.0")       // <── 必加
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.48.1")
-    kapt("com.google.dagger:hilt-android-compiler:2.48.1")
-// ViewModel + Hilt + Navigation 也要同步版本
+    implementation("com.google.dagger:hilt-android:2.50")
+    kapt("com.google.dagger:hilt-compiler:2.50")
+    // ViewModel + Hilt + Navigation 也要同步版本
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
     // Supabase Kotlin (Core + GoTrue + Realtime + Postgrest)
@@ -57,4 +63,11 @@ dependencies {
     // 添加 Accompanist Pager
     implementation("com.google.accompanist:accompanist-pager:0.30.1")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.30.1")
+    // ✅ 添加 Room 的核心库
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    // 可选协程扩展
+    // ✅ 单元测试
+    testImplementation("junit:junit:4.13.2")
 }

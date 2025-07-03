@@ -3,6 +3,8 @@ package com.williamv.debtmake.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.compose.rememberNavController
 import com.williamv.debtmake.navigation.AppNavHost
 import com.williamv.debtmake.ui.theme.DebtMakeTheme
 
@@ -11,7 +13,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             DebtMakeTheme {
-                AppNavHost()
+                val navController = rememberNavController()
+                val context = LocalContext.current
+
+                AppNavHost(
+                    navController = navController,
+                    context = context
+                )
             }
         }
     }
