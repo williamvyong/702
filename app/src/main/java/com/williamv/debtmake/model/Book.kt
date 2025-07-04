@@ -1,4 +1,4 @@
-package com.williamv.debtmake.database
+package com.williamv.debtmake.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

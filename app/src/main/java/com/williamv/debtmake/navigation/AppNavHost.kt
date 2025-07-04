@@ -1,40 +1,38 @@
 package com.williamv.debtmake.navigation
 
-import android.content.Context
-import android.content.SharedPreferences
-import androidx.compose.runtime.*
-import androidx.navigation.NavType
+import android.net.Uri
+import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.williamv.debtmake.ui.auth.LoginScreen
+import androidx.navigation.NavController
+import com.williamv.debtmake.model.Book
+import com.williamv.debtmake.ui.login.LoginScreen
 import com.williamv.debtmake.ui.book.AddBookScreen
 import com.williamv.debtmake.ui.book.BookListScreen
 import com.williamv.debtmake.ui.home.HomeScreen
 
 @Composable
 fun AppNavHost(
+    navController: NavController,
     isLoggedIn: Boolean,
-    context: Context
+    books: List<Book>,
+    selectedBookId: Long?,
+    onBookClick: (Book) -> Unit,
+    onAddBook: (String, String, Uri?) -> Unit,
+    onBookSelected: (Book) -> Unit,
+    onBack: () -> Unit,
+    onLoginSuccess: () -> Unit
 ) {
-    val navController = rememberNavController()
-    var loggedInState by remember { mutableStateOf(isLoggedIn) }
+    // 如果已登录则进入 Home，否则进入 Login
+    val startDestination = if (isLoggedIn) "home" else "login"
+    val selectedBook = books.find { it.id == selectedBookId } ?: Book(name = "Master Book")
 
-    NavHost(
-        navController = navController,
-        startDestination = if (loggedInState) "home" else "login"
-    ) {
+    NavHost(navController = navController, startDestination = startDestination) {
+        // 登录页
         composable("login") {
             LoginScreen(
-                onLogin = { email, password ->
-                    // 这里只是演示，不做实际验证
-                    context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                        .edit()
-                        .putBoolean("is_logged_in", true)
-                        .apply()
-
-                    loggedInState = true
+                onLogin = {
+                    onLoginSuccess()
                     navController.navigate("home") {
                         popUpTo("login") { inclusive = true }
                     }
@@ -49,22 +47,35 @@ fun AppNavHost(
             )
         }
 
-        composable("home") {
-            HomeScreen(navController = navController)
-        }
-
-        composable("bookList") {
+        // 账本列表
+        composable("book_list") {
             BookListScreen(
-                onAddBook = { navController.navigate("addBook") },
-                onBack = { navController.popBackStack() },
-                onBookSelected = { /* TODO */ }
+                books = books,
+                selectedBookId = selectedBookId,
+                onBookClick = onBookClick,
+                onAddBook = { navController.navigate("add_book") },
+                onBookSelected = onBookSelected,
+                onBack = onBack,
+                navController = navController
             )
         }
 
-        composable("addBook") {
+        // 添加账本
+        composable("add_book") {
             AddBookScreen(
-                onBookSaved = { navController.popBackStack() },
-                onBack = { navController.popBackStack() }
+                onAddBook = onAddBook,
+                onBack = onBack
+            )
+        }
+
+        // 主界面
+        composable("home") {
+            HomeScreen(
+                navController = navController,
+                selectedBook = selectedBook,
+                onBookClick = {
+                    navController.navigate("book_list")
+                }
             )
         }
     }
