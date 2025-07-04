@@ -1,80 +1,54 @@
+// ✅ 文件路径：app/src/main/java/com/williamv/debtmake/navigation/AppNavHost.kt
+// ✅ 文件类型：Kotlin Composable 文件
+// ✅ 功能说明：应用的导航主机，定义了所有页面的路由导航逻辑
+
 package com.williamv.debtmake.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.NavController
 import com.williamv.debtmake.model.Book
 import com.williamv.debtmake.ui.login.LoginScreen
 import com.williamv.debtmake.ui.book.AddBookScreen
 import com.williamv.debtmake.ui.book.BookListScreen
-import com.williamv.debtmake.ui.home.HomeScreen
 
 @Composable
 fun AppNavHost(
-    navController: NavController,
-    isLoggedIn: Boolean,
-    books: List<Book>,
-    selectedBookId: Long?,
-    onBookClick: (Book) -> Unit,
-    onAddBook: (String, String, Uri?) -> Unit,
-    onBookSelected: (Book) -> Unit,
-    onBack: () -> Unit,
-    onLoginSuccess: () -> Unit
+    navController: NavHostController, // 导航控制器，由 MainActivity 提供
+    isLoggedIn: Boolean,             // 是否已登录，控制初始页面
+    onLogin: () -> Unit,            // 登录成功回调（设置登录状态）
+    onBookClick: (Book) -> Unit,    // 点击某个账本的回调（跳转或打开账本详情）
+    onBookSaved: (String, String, Uri?) -> Unit // 添加账本时回调
 ) {
-    // 如果已登录则进入 Home，否则进入 Login
-    val startDestination = if (isLoggedIn) "home" else "login"
-    val selectedBook = books.find { it.id == selectedBookId } ?: Book(name = "Master Book")
+    // 设置导航主机，startDestination 根据是否登录决定起始页
+    NavHost(
+        navController = navController,
+        startDestination = if (isLoggedIn) "book_list" else "login"
+    ) {
 
-    NavHost(navController = navController, startDestination = startDestination) {
-        // 登录页
+        // 登录页面
         composable("login") {
-            LoginScreen(
-                onLogin = {
-                    onLoginSuccess()
-                    navController.navigate("home") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                },
-                onForgotPassword = { /* TODO */ },
-                onSignUp = { /* TODO */ },
-                onSkip = {
-                    navController.navigate("home") {
-                        popUpTo("login") { inclusive = true }
-                    }
+            LoginScreen(onLogin = onLogin)
+        }
+
+        // 账本列表页面
+        composable("book_list") {
+            BookListScreen(
+                onBookClick = onBookClick,
+                onAddBook = {
+                    navController.navigate("add_book")
                 }
             )
         }
 
-        // 账本列表
-        composable("book_list") {
-            BookListScreen(
-                books = books,
-                selectedBookId = selectedBookId,
-                onBookClick = onBookClick,
-                onAddBook = { navController.navigate("add_book") },
-                onBookSelected = onBookSelected,
-                onBack = onBack,
-                navController = navController
-            )
-        }
-
-        // 添加账本
+        // 添加账本页面
         composable("add_book") {
             AddBookScreen(
-                onAddBook = onAddBook,
-                onBack = onBack
-            )
-        }
-
-        // 主界面
-        composable("home") {
-            HomeScreen(
-                navController = navController,
-                selectedBook = selectedBook,
-                onBookClick = {
-                    navController.navigate("book_list")
+                onBookSaved = onBookSaved,
+                onBack = {
+                    navController.popBackStack()
                 }
             )
         }
