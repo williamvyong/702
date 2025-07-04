@@ -1,24 +1,24 @@
 package com.williamv.debtmake.ui
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.compose.rememberNavController
 import com.williamv.debtmake.navigation.AppNavHost
 import com.williamv.debtmake.ui.theme.DebtMakeTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false)
+
         setContent {
             DebtMakeTheme {
-                val navController = rememberNavController()
-                val context = LocalContext.current
-
                 AppNavHost(
-                    navController = navController,
-                    context = context
+                    isLoggedIn = isLoggedIn,
+                    context = this
                 )
             }
         }

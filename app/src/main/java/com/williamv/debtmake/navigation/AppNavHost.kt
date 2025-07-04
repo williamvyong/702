@@ -1,85 +1,70 @@
 package com.williamv.debtmake.navigation
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.williamv.debtmake.database.AppDatabase
-import com.williamv.debtmake.database.Book
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.williamv.debtmake.ui.auth.LoginScreen
 import com.williamv.debtmake.ui.book.AddBookScreen
 import com.williamv.debtmake.ui.book.BookListScreen
 import com.williamv.debtmake.ui.home.HomeScreen
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavHost(
-    navController: NavHostController,
-    modifier: Modifier = Modifier,
+    isLoggedIn: Boolean,
     context: Context
 ) {
-    val database = remember { AppDatabase.getInstance(context) }
-    val bookDao = remember { database.bookDao() }
-
-    var books by remember { mutableStateOf<List<Book>>(emptyList()) }
-    var selectedBookId by remember { mutableStateOf<Long?>(null) }
-
-    // Initial fetch
-    LaunchedEffect(Unit) {
-        books = bookDao.getAllBooks().first()
-        selectedBookId = books.firstOrNull()?.id
-    }
-
-    val selectedBook = books.find { it.id == selectedBookId }
+    val navController = rememberNavController()
+    var loggedInState by remember { mutableStateOf(isLoggedIn) }
 
     NavHost(
         navController = navController,
-        startDestination = "home",
-        modifier = modifier
+        startDestination = if (loggedInState) "home" else "login"
     ) {
-        composable("home") {
-            HomeScreen(
-                navController = navController,
-                selectedBook = selectedBook,
-                onBookClick = { navController.navigate("book_list") }
+        composable("login") {
+            LoginScreen(
+                onLogin = { email, password ->
+                    // 这里只是演示，不做实际验证
+                    context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                        .edit()
+                        .putBoolean("is_logged_in", true)
+                        .apply()
+
+                    loggedInState = true
+                    navController.navigate("home") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                onForgotPassword = { /* TODO */ },
+                onSignUp = { /* TODO */ },
+                onSkip = {
+                    navController.navigate("home") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
             )
         }
 
-        composable("book_list") {
+        composable("home") {
+            HomeScreen(navController = navController)
+        }
+
+        composable("bookList") {
             BookListScreen(
-                books = books,
-                selectedBookId = selectedBookId,
-                onBookClick = {
-                    selectedBookId = it.id
-                    navController.popBackStack()
-                },
-                navController = navController
+                onAddBook = { navController.navigate("addBook") },
+                onBack = { navController.popBackStack() },
+                onBookSelected = { /* TODO */ }
             )
         }
 
         composable("addBook") {
             AddBookScreen(
-                onAddBook = { title, description, imageUri ->
-                    val newBook = Book(
-                        name = title,
-                        description = description,
-                        iconUri = imageUri?.toString() ?: "",
-                        updatedAt = System.currentTimeMillis()
-                    )
-                    CoroutineScope(Dispatchers.IO).launch {
-                        bookDao.insert(newBook)
-                        books = bookDao.getAllBooks().first()
-                        selectedBookId = books.lastOrNull()?.id
-                    }
-                    navController.popBackStack()
-                },
-                onBack = {
-                    navController.popBackStack()
-                }
+                onBookSaved = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
             )
         }
     }
