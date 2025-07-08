@@ -31,6 +31,12 @@ interface EntryDao {
     @Query("SELECT * FROM entries WHERE contact_id = :contactId AND book_id = :bookId ORDER BY timestamp ASC")
     fun getEntriesForContactInBook(bookId: Long, contactId: Long): Flow<List<Entry>>
 
+    @Query("SELECT * FROM entries ORDER BY timestamp DESC")
+    fun getAllEntries(): Flow<List<Entry>>
+
+    @Query("SELECT * FROM entries WHERE id = :entryId LIMIT 1")
+    suspend fun getEntryById(entryId: Long): Entry?
+
     @Query("DELETE FROM entries WHERE book_id = :bookId")
     suspend fun deleteEntriesForBook(bookId: Long)
 }

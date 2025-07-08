@@ -16,6 +16,7 @@ import com.williamv.debtmake.database.AppDatabase
 import com.williamv.debtmake.navigation.AppNavHost
 import com.williamv.debtmake.ui.theme.DebtMakeTheme
 import com.williamv.debtmake.supabase.SupabaseService
+import com.williamv.debtmake.BuildConfig
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 

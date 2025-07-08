@@ -16,6 +16,9 @@ interface ContactDao {
     @Query("SELECT * FROM contacts WHERE bookId = :bookId")
     fun getContactsForBook(bookId: Long): Flow<List<Contact>>
 
+    @Query("SELECT * FROM contacts")
+    fun getAllContacts(): Flow<List<Contact>>
+
     // 插入新联系人
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertContact(contact: Contact): Long

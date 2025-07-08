@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.williamv.debtmake.model.Entry
 import com.williamv.debtmake.model.EntryType
-import com.williamv.debtmake.repository.EntryRepository
+import com.williamv.debtmake.data.repository.EntryRepository
 import kotlinx.coroutines.launch
 
 /**
