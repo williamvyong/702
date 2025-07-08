@@ -2,6 +2,7 @@ package com.williamv.debtmake.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.williamv.debtmake.data.repository.ContactRepository
 import com.williamv.debtmake.model.Contact
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,13 +48,13 @@ class ContactViewModel(private val repository: ContactRepository) : ViewModel() 
     // 删除联系人
     fun deleteContact(contact: Contact) {
         viewModelScope.launch {
-            repository.deleteContact(contact)
+            repository.deleteContact(contact.id)
             loadContactsForBook(contact.bookId)
         }
     }
 
     // 获取指定 ID 的联系人（用于编辑）
-    suspend fun getContactById(contactId: Long): Contact {
+    suspend fun getContactById(contactId: Long): Contact? {
         return repository.getContactById(contactId)
     }
 }

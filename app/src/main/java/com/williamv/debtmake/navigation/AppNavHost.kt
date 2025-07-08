@@ -1,6 +1,5 @@
 package com.williamv.debtmake.navigation
 
-import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -44,22 +43,13 @@ fun AppNavHost(
 
         // 注册页面
         composable("signup") {
-            SignUpScreen(
-                onBack = {
-                    navController.popBackStack()
-                },
-                onSuccess = {
-                    navController.navigate("login") {
-                        popUpTo("signup") { inclusive = true }
-                    }
-                }
-            )
+            SignUpScreen(navController = navController)
         }
 
         // 忘记密码页面
         composable("forgotPassword") {
             ForgotPasswordScreen(
-                onBack = {
+                onBackToLogin = {
                     navController.popBackStack()
                 }
             )

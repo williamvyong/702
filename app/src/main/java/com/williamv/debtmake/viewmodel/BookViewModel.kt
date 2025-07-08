@@ -57,7 +57,7 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
     }
 
     // 通过 ID 获取账本（通常用于编辑）
-    suspend fun getBookById(bookId: Long): Book {
+    suspend fun getBookById(bookId: Long): Book? {
         return repository.getBookById(bookId)
     }
 }

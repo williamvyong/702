@@ -3,6 +3,8 @@ package com.williamv.debtmake.ui.entry
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -10,8 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.williamv.debtmake.model.Entry
-import com.williamv.debtmake.model.EntryType
-import com.williamv.debtmake.repository.EntryRepository
+import com.williamv.debtmake.data.repository.EntryRepository
 import kotlinx.coroutines.launch
 
 /**
@@ -33,9 +34,7 @@ fun EntryListScreen(
 
     // 初始加载
     LaunchedEffect(bookId) {
-        repository.getAllEntriesForBook(bookId).collect {
-            entries = it
-        }
+        repository.getEntriesForBook(bookId).collect { entries = it }
     }
 
     Scaffold(
@@ -75,15 +74,12 @@ fun EntryListItem(entry: Entry) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = if (entry.type == EntryType.BORROW) "My Stack: RM${entry.amount}" else "Their Stack: RM${entry.amount}",
-                style = MaterialTheme.typography.titleMedium,
-                color = if (entry.type == EntryType.BORROW) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                text = "Amount: RM${entry.amount}",
+                style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Date: ${entry.date}", style = MaterialTheme.typography.bodySmall)
-            if (!entry.note.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Note: ${entry.note}", style = MaterialTheme.typography.bodySmall)
+            entry.description?.let {
+                Text(text = it, style = MaterialTheme.typography.bodySmall)
             }
         }
     }

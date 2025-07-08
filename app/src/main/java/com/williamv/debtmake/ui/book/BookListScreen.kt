@@ -45,7 +45,7 @@ fun BookListScreen(
     onAddBook: () -> Unit,
     bookViewModel: BookViewModel = viewModel()
 ) {
-    val books by bookViewModel.allBooks.collectAsState()
+    val books by bookViewModel.books.collectAsState()
 
     Scaffold(
         topBar = {

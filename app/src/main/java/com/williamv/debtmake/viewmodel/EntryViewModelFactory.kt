@@ -2,6 +2,7 @@ package com.williamv.debtmake.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.williamv.debtmake.data.repository.EntryRepository
 
 /**
  * EntryViewModelFactory 用于创建 EntryViewModel 实例

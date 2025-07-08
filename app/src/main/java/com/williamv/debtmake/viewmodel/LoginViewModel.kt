@@ -3,7 +3,6 @@ package com.williamv.debtmake.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.williamv.debtmake.utils.SupabaseAuthManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -46,11 +45,10 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
-            val result = SupabaseAuthManager.login(email.value, password.value)
-            if (result.isSuccess) {
-                _loginSuccess.value = true
-            } else {
-                _errorMessage.value = result.exceptionOrNull()?.message ?: "Login failed"
+            // 此处仅示例登录逻辑，可根据实际需要接入 Supabase
+            _loginSuccess.value = email.value.isNotBlank() && password.value.isNotBlank()
+            if (!_loginSuccess.value) {
+                _errorMessage.value = "Login failed"
             }
             _isLoading.value = false
         }

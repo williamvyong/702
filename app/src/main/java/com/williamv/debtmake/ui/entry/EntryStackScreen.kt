@@ -6,7 +6,6 @@ package com.williamv.debtmake.ui.entry
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,7 +24,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.williamv.debtmake.R
 import com.williamv.debtmake.model.Entry
-import com.williamv.debtmake.ui.components.EntryListItem
 import com.williamv.debtmake.viewmodel.EntryViewModel
 import kotlinx.coroutines.launch
 
@@ -38,13 +35,12 @@ fun EntryStackScreen(
     contactName: String,
     contactAvatar: String?,
     onBack: () -> Unit,
-    onCollectClicked: (Entry) -> Unit,
     entryViewModel: EntryViewModel
 ) {
     val scope = rememberCoroutineScope()
     val entries by entryViewModel.getEntriesForContactInBook(bookId, contactId).collectAsState(initial = emptyList())
     val totalAmount = entries.sumOf { it.amount }
-    val collectedAmount = entries.sumOf { it.collectedAmount }
+    val collectedAmount = 0.0
     val remainingAmount = totalAmount - collectedAmount
 
     Scaffold(
@@ -78,7 +74,7 @@ fun EntryStackScreen(
                 val avatarPainter = if (!contactAvatar.isNullOrBlank()) {
                     rememberAsyncImagePainter(model = Uri.parse(contactAvatar))
                 } else {
-                    painterResource(id = R.drawable.ic_default_avatar)
+                    painterResource(id = R.drawable.ic_logo)
                 }
 
                 Image(
@@ -95,7 +91,7 @@ fun EntryStackScreen(
 
                 Column {
                     Text(text = contactName, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text(text = "Since: ${entries.firstOrNull()?.date ?: "-"}", fontSize = 14.sp)
+                    Text(text = "Since: -", fontSize = 14.sp)
                 }
             }
 
@@ -119,16 +115,7 @@ fun EntryStackScreen(
 
             LazyColumn {
                 items(entries) { entry ->
-                    EntryListItem(
-                        entry = entry,
-                        onEdit = { /* 预留编辑逻辑 */ },
-                        onDelete = {
-                            scope.launch {
-                                entryViewModel.deleteEntry(entry)
-                            }
-                        },
-                        onCollect = { onCollectClicked(entry) }
-                    )
+                    EntryListItem(entry = entry)
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.williamv.debtmake.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.williamv.debtmake.data.repository.EntryRepository
 import com.williamv.debtmake.model.Entry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,19 +52,12 @@ class EntryViewModel(private val repository: EntryRepository) : ViewModel() {
         }
     }
 
-    // 收款逻辑（修改 paidAmount 字段）
-    fun collectEntryAmount(entryId: Long, amountCollected: Double) {
-        viewModelScope.launch {
-            val entry = repository.getEntryById(entryId)
-            val newPaidAmount = (entry.paidAmount ?: 0.0) + amountCollected
-            val updated = entry.copy(paidAmount = newPaidAmount)
-            repository.updateEntry(updated)
-            loadEntries(updated.bookId, updated.contactId)
-        }
-    }
+    // 提供直接获取 Flow 的方法，便于界面 collectAsState
+    fun getEntriesForContactInBook(bookId: Long, contactId: Long) =
+        repository.getEntriesForContactInBook(bookId, contactId)
 
     // 单独获取 entry
-    suspend fun getEntryById(entryId: Long): Entry {
+    suspend fun getEntryById(entryId: Long): Entry? {
         return repository.getEntryById(entryId)
     }
 }

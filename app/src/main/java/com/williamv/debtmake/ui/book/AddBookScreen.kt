@@ -55,7 +55,12 @@ fun AddBookScreen(
                     TextButton(
                         onClick = {
                             if (name.isNotBlank()) {
-                                bookViewModel.insertBook(name, description, imageUri)
+                                val book = com.williamv.debtmake.model.Book(
+                                    name = name,
+                                    description = description,
+                                    iconUri = imageUri?.toString()
+                                )
+                                bookViewModel.insertBook(book)
                                 onBookSaved()
                             }
                         }

@@ -2,6 +2,7 @@ package com.williamv.debtmake.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.williamv.debtmake.data.repository.TransactionRepository
 import com.williamv.debtmake.model.Transaction
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,7 +75,7 @@ class TransactionViewModel(private val repository: TransactionRepository) : View
     }
 
     // 获取指定 ID 的交易（用于 Collect 页面）
-    suspend fun getTransactionById(transactionId: Long): Transaction {
+    suspend fun getTransactionById(transactionId: Long): Transaction? {
         return repository.getTransactionById(transactionId)
     }
 }
