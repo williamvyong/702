@@ -103,12 +103,15 @@ dependencies {
     testImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    // Supabase 3.2.0 & ktor-android 3.2.0
+    // --- Supabase 相关依赖推荐写法 ---
     implementation(platform("io.github.jan-tennert.supabase:bom:3.2.0"))
-    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:supabase-kt")
     implementation("io.github.jan-tennert.supabase:auth-kt")
-    implementation("io.github.jan-tennert.supabase:realtime-kt")
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:storage-kt")
+
+
+
     // ------------------ Ktor 客户端（Android HTTP）依赖------------------
     implementation("io.ktor:ktor-client-android:3.2.1")
     implementation("io.ktor:ktor-client-logging:3.2.1") // 日志

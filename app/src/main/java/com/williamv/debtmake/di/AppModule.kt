@@ -2,12 +2,14 @@
 package com.williamv.debtmake.di
 
 import android.app.Application
+import android.content.Context
 import com.williamv.debtmake.data.AuthService
 import com.williamv.debtmake.data.AuthServiceImpl
-import com.williamv.debtmake.supabase.SupabaseClientProvider
+import com.williamv.debtmake.data.supabase.SupabaseClientProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.jan.supabase.SupabaseClient
 import javax.inject.Singleton
@@ -24,8 +26,8 @@ object AppModule {
      */
     @Provides
     @Singleton
-    fun provideSupabaseClient(): SupabaseClient {
-        return SupabaseClientProvider.client
+    fun provideSupabaseClient(@ApplicationContext context: Context): SupabaseClient {
+        return SupabaseClientProvider.getClient(context)
     }
 
     /**
@@ -33,7 +35,7 @@ object AppModule {
      */
     @Provides
     @Singleton
-    fun provideAuthService(): AuthService {
-        return AuthServiceImpl()
+    fun provideAuthService(client: SupabaseClient): AuthService {
+        return AuthServiceImpl(client)
     }
 }

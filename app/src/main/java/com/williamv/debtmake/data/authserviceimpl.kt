@@ -1,62 +1,60 @@
-// ✅ 文件位置：com.williamv.debtmake.data.AuthServiceImpl.kt
 package com.williamv.debtmake.data
 
-import io.github.jan.supabase.exceptions.AuthException
-import io.github.jan.supabase.gotrue.user.UserSession
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.Email
-import com.williamv.debtmake.supabase.SupabaseClientProvider
+import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.user.UserSession
+import io.github.jan.supabase.exceptions.RestException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * AuthServiceImpl 实现了 AuthService 接口，
- * 使用 Supabase 实现用户认证逻辑。
+ * AuthService 实现类，对接 Supabase 3.2.0，负责登录/注册/登出等功能
  */
-class AuthServiceImpl : AuthService {
+class AuthServiceImpl(
+    private val client: SupabaseClient
+) : AuthService {
 
-    private val client = SupabaseClientProvider.client
-    private val auth = client.auth
-
-    override suspend fun login(email: String, password: String): Result<Unit> {
-        return try {
-            withContext(Dispatchers.IO) {
-                auth.signInWith(Email) {
-                    this.email = email
-                    this.password = password
-                }
+    // 登录，返回 UserSession
+    override suspend fun login(email: String, password: String): UserSession? = withContext(Dispatchers.IO) {
+        try {
+            client.auth.signInWith(Email) {
+                this.email = email
+                this.password = password
             }
-            Result.success(Unit)
-        } catch (e: AuthException) {
-            Result.failure(e)
+            // 登录后获取当前会话
+            client.auth.currentSessionOrNull()
+        } catch (e: RestException) {
+            null
         }
     }
 
-    override suspend fun register(email: String, password: String): Result<Unit> {
-        return try {
-            withContext(Dispatchers.IO) {
-                auth.signUpWith(Email) {
-                    this.email = email
-                    this.password = password
-                }
+    // 注册，返回 UserSession
+    override suspend fun register(email: String, password: String): UserSession? = withContext(Dispatchers.IO) {
+        try {
+            client.auth.signUpWith(Email) {
+                this.email = email
+                this.password = password
             }
-            Result.success(Unit)
-        } catch (e: AuthException) {
-            Result.failure(e)
+            // 注册后获取当前会话
+            client.auth.currentSessionOrNull()
+        } catch (e: RestException) {
+            null
         }
     }
 
+    // 登出
     override suspend fun logout() {
-        withContext(Dispatchers.IO) {
-            auth.signOut()
-        }
+        client.auth.signOut()
     }
 
+    // 是否已登录
     override fun isLoggedIn(): Boolean {
-        return auth.currentSessionOrNull() != null
+        return client.auth.currentSessionOrNull() != null
     }
 
+    // 获取当前用户ID
     override fun getCurrentUserId(): String? {
-        return auth.currentUserOrNull()?.id
+        return client.auth.currentUserOrNull()?.id
     }
 }
