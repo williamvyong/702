@@ -5,48 +5,41 @@ import com.williamv.debtmake.model.Entry
 import kotlinx.coroutines.flow.Flow
 
 /**
- * EntryRepository 是 Entry 数据的仓库类，封装了所有对 EntryDao 的调用逻辑。
+ * Repository 类用于封装所有与账本条目（Entry）相关的数据操作逻辑。
  */
 class EntryRepository(private val entryDao: EntryDao) {
 
-    /**
-     * 插入新的 Entry 条目
-     */
+    /** 插入条目 */
     suspend fun insertEntry(entry: Entry) {
         entryDao.insertEntry(entry)
     }
 
-    /**
-     * 更新已有的 Entry
-     */
+    /** 更新条目 */
     suspend fun updateEntry(entry: Entry) {
         entryDao.updateEntry(entry)
     }
 
-    /**
-     * 删除指定 Entry
-     */
+    /** 删除条目 */
     suspend fun deleteEntry(entry: Entry) {
         entryDao.deleteEntry(entry)
     }
 
-    /**
-     * 获取某账本下的所有 Entry（使用 Flow 实现实时 UI 数据同步）
-     */
+    /** 根据账本 ID 查询所有条目 */
     fun getEntriesForBook(bookId: Long): Flow<List<Entry>> {
         return entryDao.getEntriesForBook(bookId)
     }
 
-    /**
-     * 获取某联系人在指定账本下的所有 Entry（用于详情页）
-     */
-    fun getEntriesForContact(bookId: Long, contactId: Long): Flow<List<Entry>> {
-        return entryDao.getEntriesForContact(bookId, contactId)
+    /** 根据账本和联系人 ID 查询所有条目 */
+    fun getEntriesForContactInBook(bookId: Long, contactId: Long): Flow<List<Entry>> {
+        return entryDao.getEntriesForContactInBook(bookId, contactId)
     }
 
-    /**
-     * 根据 ID 获取某条 Entry
-     */
+    /** 查询所有条目（所有账本） */
+    fun getAllEntries(): Flow<List<Entry>> {
+        return entryDao.getAllEntries()
+    }
+
+    /** 根据 ID 查询条目 */
     suspend fun getEntryById(entryId: Long): Entry? {
         return entryDao.getEntryById(entryId)
     }

@@ -1,35 +1,42 @@
-// 📂 文件路径: com.williamv.debtmake.viewmodel/BookViewModel.kt
 package com.williamv.debtmake.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.williamv.debtmake.data.repository.BookRepository
 import com.williamv.debtmake.model.Book
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * BookViewModel：用于管理账本数据与 UI 的连接
- * 调用 BookRepository 完成账本的增删改查
+ * BookViewModel 用于提供账本的 UI 状态与操作逻辑
+ * - 所有 Book 列表操作（新增、更新、删除）都从这里调用
  */
 class BookViewModel(private val repository: BookRepository) : ViewModel() {
 
-    // 所有账本数据流，以 StateFlow 形式暴露给 UI
-    val allBooks: StateFlow<List<Book>> = repository.getAllBooks()
-        .map { it.sortedByDescending { book -> book.id } } // 可选排序：按 id 降序
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    // 账本列表状态
+    private val _books = MutableStateFlow<List<Book>>(emptyList())
+    val books: StateFlow<List<Book>> = _books.asStateFlow()
 
-    // 添加新账本
-    fun addBook(book: Book) {
+    init {
+        loadBooks()
+    }
+
+    // 加载账本列表
+    fun loadBooks() {
+        viewModelScope.launch {
+            repository.getAllBooks().collect { bookList ->
+                _books.value = bookList
+            }
+        }
+    }
+
+    // 插入账本
+    fun insertBook(book: Book) {
         viewModelScope.launch {
             repository.insertBook(book)
+            loadBooks()
         }
     }
 
@@ -37,6 +44,7 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
     fun updateBook(book: Book) {
         viewModelScope.launch {
             repository.updateBook(book)
+            loadBooks()
         }
     }
 
@@ -44,6 +52,12 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
     fun deleteBook(book: Book) {
         viewModelScope.launch {
             repository.deleteBook(book)
+            loadBooks()
         }
+    }
+
+    // 通过 ID 获取账本（通常用于编辑）
+    suspend fun getBookById(bookId: Long): Book {
+        return repository.getBookById(bookId)
     }
 }

@@ -3,12 +3,16 @@ package com.williamv.debtmake.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-// Contact 表：用于存储联系人信息
+/**
+ * Contact 数据模型，用于存储联系人信息
+ * 每个联系人属于一个特定账本（通过 bookId 关联）
+ */
 @Entity(tableName = "contacts")
 data class Contact(
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L,                // 联系人主键 ID，自动生成
-    val fullName: String,             // 联系人姓名
-    val phoneNumber: String?,         // 联系人电话（可选）
-    val imageUri: String? = null      // 联系人头像 URI（可选，用字符串存储）
+    val id: Long = 0L,                 // 主键，自增
+    val bookId: Long,                  // 所属账本的 ID（外键，逻辑关联）
+    val name: String,                  // 联系人姓名
+    val phoneNumber: String? = null,   // 可选的电话号码
+    val imageUri: String? = null       // 可选的联系人头像（本地路径或 URI）
 )

@@ -4,15 +4,19 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.google.dagger:hilt-android-gradle-plugin:2.48.1")
+        // Android Gradle Plugin
+        classpath("com.android.tools.build:gradle:8.6.0")
+        // Kotlin Gradle Plugin
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0")
+        // Hilt Gradle Plugin
+        classpath("com.google.dagger:hilt-android-gradle-plugin:2.50")
+        // 其他需要的 classpath 都可以加
     }
 }
 
-plugins {
-    // 只给 Android/Kotlin 用，Hilt 插件放到 buildscript 里
-    id("com.android.application") version "8.6.0" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.20" apply false
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
-
-
-

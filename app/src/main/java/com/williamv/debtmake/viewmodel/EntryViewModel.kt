@@ -2,78 +2,68 @@ package com.williamv.debtmake.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.williamv.debtmake.data.repository.EntryRepository
 import com.williamv.debtmake.model.Entry
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * EntryViewModel 用于 UI 层与 EntryRepository 的交互
+ * EntryViewModel 负责管理每个账本下与联系人的交易堆栈（分账记录）
+ * 支持获取、插入、更新、删除、收款操作
  */
 class EntryViewModel(private val repository: EntryRepository) : ViewModel() {
 
-    // 当前选中的账本 ID
-    private val _selectedBookId = MutableStateFlow<Long?>(null)
-    val selectedBookId: StateFlow<Long?> = _selectedBookId.asStateFlow()
+    // 当前账本和联系人的 Entry 列表状态
+    private val _entries = MutableStateFlow<List<Entry>>(emptyList())
+    val entries: StateFlow<List<Entry>> = _entries.asStateFlow()
 
-    // 当前选中的联系人 ID（用于过滤）
-    private val _selectedContactId = MutableStateFlow<Long?>(null)
-    val selectedContactId: StateFlow<Long?> = _selectedContactId.asStateFlow()
-
-    // 当前账本下的所有条目（可被 UI 层观察）
-    val entries: StateFlow<List<Entry>> = selectedBookId
-        .filterNotNull()
-        .flatMapLatest { bookId ->
-            repository.getEntriesForBook(bookId)
+    // 获取某个账本中某个联系人的所有 entry 记录
+    fun loadEntries(bookId: Long, contactId: Long) {
+        viewModelScope.launch {
+            repository.getEntriesForContactInBook(bookId, contactId).collect { list ->
+                _entries.value = list
+            }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    /**
-     * 设置当前账本 ID
-     */
-    fun setSelectedBookId(bookId: Long) {
-        _selectedBookId.value = bookId
     }
 
-    /**
-     * 设置当前联系人 ID
-     */
-    fun setSelectedContactId(contactId: Long) {
-        _selectedContactId.value = contactId
+    // 插入新分账记录
+    fun insertEntry(entry: Entry) {
+        viewModelScope.launch {
+            repository.insertEntry(entry)
+            loadEntries(entry.bookId, entry.contactId)
+        }
     }
 
-    /**
-     * 获取指定联系人在账本下的 Entry（用于详情页）
-     */
-    fun getEntriesForContact(bookId: Long, contactId: Long): Flow<List<Entry>> {
-        return repository.getEntriesForContact(bookId, contactId)
+    // 更新 entry（例如备注或金额）
+    fun updateEntry(entry: Entry) {
+        viewModelScope.launch {
+            repository.updateEntry(entry)
+            loadEntries(entry.bookId, entry.contactId)
+        }
     }
 
-    /**
-     * 插入新条目
-     */
-    fun insertEntry(entry: Entry) = viewModelScope.launch {
-        repository.insertEntry(entry)
+    // 删除某条 entry
+    fun deleteEntry(entry: Entry) {
+        viewModelScope.launch {
+            repository.deleteEntry(entry)
+            loadEntries(entry.bookId, entry.contactId)
+        }
     }
 
-    /**
-     * 更新已有条目
-     */
-    fun updateEntry(entry: Entry) = viewModelScope.launch {
-        repository.updateEntry(entry)
+    // 收款逻辑（修改 paidAmount 字段）
+    fun collectEntryAmount(entryId: Long, amountCollected: Double) {
+        viewModelScope.launch {
+            val entry = repository.getEntryById(entryId)
+            val newPaidAmount = (entry.paidAmount ?: 0.0) + amountCollected
+            val updated = entry.copy(paidAmount = newPaidAmount)
+            repository.updateEntry(updated)
+            loadEntries(updated.bookId, updated.contactId)
+        }
     }
 
-    /**
-     * 删除条目
-     */
-    fun deleteEntry(entry: Entry) = viewModelScope.launch {
-        repository.deleteEntry(entry)
+    // 单独获取 entry
+    suspend fun getEntryById(entryId: Long): Entry {
+        return repository.getEntryById(entryId)
     }
 }

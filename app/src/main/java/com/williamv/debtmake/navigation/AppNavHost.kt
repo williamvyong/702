@@ -1,7 +1,3 @@
-// ✅ 文件路径：app/src/main/java/com/williamv/debtmake/navigation/AppNavHost.kt
-// ✅ 文件类型：Kotlin Composable 文件
-// ✅ 功能说明：应用的导航主机，定义了所有页面的路由导航逻辑
-
 package com.williamv.debtmake.navigation
 
 import android.net.Uri
@@ -9,45 +5,85 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.williamv.debtmake.model.Book
-import com.williamv.debtmake.ui.login.LoginScreen
-import com.williamv.debtmake.ui.book.AddBookScreen
 import com.williamv.debtmake.ui.book.BookListScreen
+import com.williamv.debtmake.ui.book.AddBookScreen
+import com.williamv.debtmake.ui.login.LoginScreen
+import com.williamv.debtmake.ui.login.SignUpScreen
+import com.williamv.debtmake.ui.login.ForgotPasswordScreen
 
 @Composable
 fun AppNavHost(
-    navController: NavHostController, // 导航控制器，由 MainActivity 提供
-    isLoggedIn: Boolean,             // 是否已登录，控制初始页面
-    onLogin: () -> Unit,            // 登录成功回调（设置登录状态）
-    onBookClick: (Book) -> Unit,    // 点击某个账本的回调（跳转或打开账本详情）
-    onBookSaved: (String, String, Uri?) -> Unit // 添加账本时回调
+    navController: NavHostController,
+    startDestination: String = "login"
 ) {
-    // 设置导航主机，startDestination 根据是否登录决定起始页
-    NavHost(
-        navController = navController,
-        startDestination = if (isLoggedIn) "book_list" else "login"
-    ) {
+    NavHost(navController = navController, startDestination = startDestination) {
 
         // 登录页面
         composable("login") {
-            LoginScreen(onLogin = onLogin)
+            LoginScreen(
+                onLogin = { email, password ->
+                    // 登录成功跳转账本列表
+                    navController.navigate("bookList") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                onSignUp = {
+                    navController.navigate("signup")
+                },
+                onForgotPassword = {
+                    navController.navigate("forgotPassword")
+                },
+                onSkip = {
+                    // 跳过登录 - 调试或游客模式
+                    navController.navigate("bookList") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // 注册页面
+        composable("signup") {
+            SignUpScreen(
+                onBack = {
+                    navController.popBackStack()
+                },
+                onSuccess = {
+                    navController.navigate("login") {
+                        popUpTo("signup") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // 忘记密码页面
+        composable("forgotPassword") {
+            ForgotPasswordScreen(
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         // 账本列表页面
-        composable("book_list") {
+        composable("bookList") {
             BookListScreen(
-                onBookClick = onBookClick,
                 onAddBook = {
-                    navController.navigate("add_book")
+                    navController.navigate("addBook")
+                },
+                onSelectBook = { bookId ->
+                    // TODO: 跳转账本详情页（未定义）
                 }
             )
         }
 
         // 添加账本页面
-        composable("add_book") {
+        composable("addBook") {
             AddBookScreen(
-                onBookSaved = onBookSaved,
                 onBack = {
+                    navController.popBackStack()
+                },
+                onBookSaved = {
                     navController.popBackStack()
                 }
             )

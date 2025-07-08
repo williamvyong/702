@@ -5,45 +5,42 @@ import com.williamv.debtmake.model.Transaction
 import kotlinx.coroutines.flow.Flow
 
 /**
- * TransactionRepository 是用于操作交易数据表（Transaction）的中间层，
- * 负责将 ViewModel 与 DAO 分离，便于维护与测试。
+ * Repository 类用于封装所有与交易（Transaction）相关的数据操作逻辑。
  */
 class TransactionRepository(private val transactionDao: TransactionDao) {
 
-    /**
-     * 获取某个账本下的所有交易数据
-     * @param bookId Long - 指定账本的ID
-     * @return Flow<List<Transaction>> - 响应式交易列表
-     */
-    fun getTransactionsForBook(bookId: Long): Flow<List<Transaction>> {
-        return transactionDao.getTransactionsForBook(bookId)
-    }
-
-    /**
-     * 根据联系人 ID 获取该联系人的所有交易（可用于详情页）
-     */
-    fun getTransactionsForContact(bookId: Long, contactId: Long): Flow<List<Transaction>> {
-        return transactionDao.getTransactionsForContact(bookId, contactId)
-    }
-
-    /**
-     * 插入一笔交易记录
-     */
+    /** 插入一条交易记录 */
     suspend fun insertTransaction(transaction: Transaction) {
         transactionDao.insertTransaction(transaction)
     }
 
-    /**
-     * 删除一笔交易记录
-     */
+    /** 更新一条交易记录 */
+    suspend fun updateTransaction(transaction: Transaction) {
+        transactionDao.updateTransaction(transaction)
+    }
+
+    /** 删除一条交易记录 */
     suspend fun deleteTransaction(transaction: Transaction) {
         transactionDao.deleteTransaction(transaction)
     }
 
-    /**
-     * 更新一笔交易记录
-     */
-    suspend fun updateTransaction(transaction: Transaction) {
-        transactionDao.updateTransaction(transaction)
+    /** 根据账本 ID 查询所有交易 */
+    fun getTransactionsForBook(bookId: Long): Flow<List<Transaction>> {
+        return transactionDao.getTransactionsForBook(bookId)
+    }
+
+    /** 根据账本 ID 和联系人 ID 查询交易 */
+    fun getTransactionsForContact(bookId: Long, contactId: Long): Flow<List<Transaction>> {
+        return transactionDao.getTransactionsForContact(bookId, contactId)
+    }
+
+    /** 查询所有交易（不区分账本） */
+    fun getAllTransactions(): Flow<List<Transaction>> {
+        return transactionDao.getAllTransactions()
+    }
+
+    /** 根据交易 ID 查询单条记录 */
+    suspend fun getTransactionById(transactionId: Long): Transaction? {
+        return transactionDao.getTransactionById(transactionId)
     }
 }
