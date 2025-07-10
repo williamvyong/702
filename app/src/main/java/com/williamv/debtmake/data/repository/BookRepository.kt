@@ -5,42 +5,22 @@ import com.williamv.debtmake.model.Book
 import kotlinx.coroutines.flow.Flow
 
 /**
- * BookRepository 用于封装 BookDao 的数据库操作，供 ViewModel 调用。
+ * BookRepository 用于对账本数据进行数据库封装，供 ViewModel 层调用
  */
 class BookRepository(private val bookDao: BookDao) {
 
-    /**
-     * 获取所有账本数据（支持 Flow 观察数据变动）
-     */
-    fun getAllBooks(): Flow<List<Book>> {
-        return bookDao.getAllBooks()
-    }
+    /** 获取所有账本（Flow 监听） */
+    fun getAllBooks(): Flow<List<Book>> = bookDao.getAllBooks()
 
-    /**
-     * 根据 ID 获取指定账本
-     */
-    suspend fun getBookById(bookId: Long): Book? {
-        return bookDao.getBookById(bookId)
-    }
+    /** 根据ID获取账本，可能为null */
+    suspend fun getBookById(bookId: Long): Book? = bookDao.getBookById(bookId)
 
-    /**
-     * 插入新账本
-     */
-    suspend fun insertBook(book: Book) {
-        bookDao.insertBook(book)
-    }
+    /** 新增账本，返回主键ID */
+    suspend fun insertBook(book: Book): Long = bookDao.insertBook(book)
 
-    /**
-     * 更新现有账本
-     */
-    suspend fun updateBook(book: Book) {
-        bookDao.updateBook(book)
-    }
+    /** 更新账本 */
+    suspend fun updateBook(book: Book) = bookDao.updateBook(book)
 
-    /**
-     * 删除账本
-     */
-    suspend fun deleteBook(book: Book) {
-        bookDao.deleteBook(book)
-    }
+    /** 删除账本（根据主键ID） */
+    suspend fun deleteBook(bookId: Long) = bookDao.deleteBookById(bookId)
 }

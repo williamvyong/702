@@ -1,42 +1,49 @@
-package com.williamv.debtmake.database.dao
+package com.williamv.debtmake.data.dao
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import com.williamv.debtmake.model.Entry
-import kotlinx.coroutines.flow.Flow
 
 /**
- * EntryDao 提供对 entries 表的访问接口
- * 包含插入、删除、更新、查询等基本操作
+ * 账目流水数据库 DAO，支持 Active/Paid off 查询、增删改、归档
  */
 @Dao
 interface EntryDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    /**
+     * 查询账本下某联系人的所有未归档流水（Active）
+     */
+    @Query("SELECT * FROM entries WHERE bookId = :bookId AND contactId = :contactId AND isPaidoff = 0 ORDER BY timestamp ASC")
+    suspend fun getEntriesForContactInBook(bookId: Long, contactId: Long): List<Entry>
+
+    /**
+     * 查询账本下某联系人的所有已归档流水（Paid off 历史）
+     */
+    @Query("SELECT * FROM entries WHERE bookId = :bookId AND contactId = :contactId AND isPaidoff = 1 ORDER BY timestamp ASC")
+    suspend fun getPaidoffEntriesForContactInBook(bookId: Long, contactId: Long): List<Entry>
+
+    /**
+     * 新增账目流水
+     */
+    @Insert
     suspend fun insertEntry(entry: Entry)
 
-    @Delete
-    suspend fun deleteEntry(entry: Entry)
-
+    /**
+     * 更新账目
+     */
     @Update
     suspend fun updateEntry(entry: Entry)
 
-    @Query("SELECT * FROM entries WHERE book_id = :bookId ORDER BY timestamp DESC")
-    fun getEntriesForBook(bookId: Long): Flow<List<Entry>>
+    /**
+     * 删除账目
+     */
+    @Delete
+    suspend fun deleteEntry(entry: Entry)
 
-    @Query("SELECT * FROM entries WHERE contact_id = :contactId AND book_id = :bookId ORDER BY timestamp ASC")
-    fun getEntriesForContactInBook(bookId: Long, contactId: Long): Flow<List<Entry>>
+    /**
+     * 归档该账本+联系人下所有流水（isPaidoff=1，Paid off）
+     */
+    @Query("UPDATE entries SET isPaidoff = 1 WHERE bookId = :bookId AND contactId = :contactId")
+    suspend fun archivePaidoff(bookId: Long, contactId: Long)
 
-    @Query("SELECT * FROM entries ORDER BY timestamp DESC")
-    fun getAllEntries(): Flow<List<Entry>>
-
-    @Query("SELECT * FROM entries WHERE id = :entryId LIMIT 1")
-    suspend fun getEntryById(entryId: Long): Entry?
-
-    @Query("DELETE FROM entries WHERE book_id = :bookId")
-    suspend fun deleteEntriesForBook(bookId: Long)
+    // 如果你还有其他 filter/批量/统计等业务，可以继续拓展
 }

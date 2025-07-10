@@ -5,13 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import com.williamv.debtmake.data.repository.BookRepository
 
 /**
- * BookViewModelFactory 用于创建 BookViewModel 实例
- * 需要传入 BookRepository 作为参数
+ * BookViewModelFactory：账本VM工厂
  */
 class BookViewModelFactory(
     private val repository: BookRepository
 ) : ViewModelProvider.Factory {
-
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(BookViewModel::class.java)) {

@@ -1,30 +1,28 @@
 package com.williamv.debtmake.model
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.ColumnInfo
 
 /**
- * Entry 实体类代表某个联系人在某本账本内的一条记录（借出/借入）
- * 每条 Entry 代表一笔记录在时间线上的流动（不一定是交易本身，也可能是收款记录）
+ * 账目流水实体类
+ * @property id 主键
+ * @property bookId 所属账本ID
+ * @property contactId 所属联系人ID
+ * @property amount 金额（正数，收款为collect，付款为payout，partial/overpay均支持）
+ * @property type 交易类型："collect" or "payout"
+ * @property description 备注
+ * @property timestamp 时间戳（建议存ISO格式字符串或Long）
+ * @property isPaidoff 是否归档（Paid off，平仓后归档历史账单）
  */
 @Entity(tableName = "entries")
 data class Entry(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L, // 主键，自增
-
-    @ColumnInfo(name = "book_id")
-    val bookId: Long, // 所属账本 ID
-
-    @ColumnInfo(name = "contact_id")
-    val contactId: Long, // 所属联系人 ID
-
-    @ColumnInfo(name = "amount")
-    val amount: Double, // 金额，正数代表 Lend（对方欠我），负数代表 Borrow（我欠对方）
-
-    @ColumnInfo(name = "description")
-    val description: String?, // 可选备注内容
-
-    @ColumnInfo(name = "timestamp")
-    val timestamp: Long = System.currentTimeMillis() // 时间戳，用于排序
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
+    @ColumnInfo(name = "bookId") val bookId: Long,
+    @ColumnInfo(name = "contactId") val contactId: Long,
+    @ColumnInfo(name = "amount") val amount: Double,
+    @ColumnInfo(name = "type") val type: String, // "collect" 或 "payout"
+    @ColumnInfo(name = "description") val description: String? = null,
+    @ColumnInfo(name = "timestamp") val timestamp: String? = null,
+    @ColumnInfo(name = "isPaidoff") val isPaidoff: Boolean = false
 )

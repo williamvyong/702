@@ -5,42 +5,29 @@ import com.williamv.debtmake.model.Transaction
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Repository 类用于封装所有与交易（Transaction）相关的数据操作逻辑。
+ * TransactionRepository 用于交易记录的数据库封装
  */
 class TransactionRepository(private val transactionDao: TransactionDao) {
 
-    /** 插入一条交易记录 */
-    suspend fun insertTransaction(transaction: Transaction) {
-        transactionDao.insertTransaction(transaction)
-    }
+    /** 插入交易，返回主键ID */
+    suspend fun insertTransaction(transaction: Transaction): Long = transactionDao.insertTransaction(transaction)
 
-    /** 更新一条交易记录 */
-    suspend fun updateTransaction(transaction: Transaction) {
-        transactionDao.updateTransaction(transaction)
-    }
+    /** 更新交易 */
+    suspend fun updateTransaction(transaction: Transaction) = transactionDao.updateTransaction(transaction)
 
-    /** 删除一条交易记录 */
-    suspend fun deleteTransaction(transaction: Transaction) {
-        transactionDao.deleteTransaction(transaction)
-    }
+    /** 删除交易（根据主键ID） */
+    suspend fun deleteTransaction(transactionId: Long) = transactionDao.deleteTransactionById(transactionId)
 
-    /** 根据账本 ID 查询所有交易 */
-    fun getTransactionsForBook(bookId: Long): Flow<List<Transaction>> {
-        return transactionDao.getTransactionsForBook(bookId)
-    }
+    /** 获取账本下所有交易 */
+    fun getTransactionsForBook(bookId: Long): Flow<List<Transaction>> = transactionDao.getTransactionsForBook(bookId)
 
-    /** 根据账本 ID 和联系人 ID 查询交易 */
-    fun getTransactionsForContact(bookId: Long, contactId: Long): Flow<List<Transaction>> {
-        return transactionDao.getTransactionsForContact(bookId, contactId)
-    }
+    /** 获取账本下指定联系人的所有交易 */
+    fun getTransactionsForContact(bookId: Long, contactId: Long): Flow<List<Transaction>> =
+        transactionDao.getTransactionsForContact(bookId, contactId)
 
-    /** 查询所有交易（不区分账本） */
-    fun getAllTransactions(): Flow<List<Transaction>> {
-        return transactionDao.getAllTransactions()
-    }
+    /** 获取所有交易 */
+    fun getAllTransactions(): Flow<List<Transaction>> = transactionDao.getAllTransactions()
 
-    /** 根据交易 ID 查询单条记录 */
-    suspend fun getTransactionById(transactionId: Long): Transaction? {
-        return transactionDao.getTransactionById(transactionId)
-    }
+    /** 根据ID获取单条交易（可空） */
+    suspend fun getTransactionById(transactionId: Long): Transaction? = transactionDao.getTransactionById(transactionId)
 }

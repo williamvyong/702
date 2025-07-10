@@ -1,130 +1,157 @@
-// 📂 文件路径: com.williamv.debtmake.ui.book/BookListScreen.kt
 package com.williamv.debtmake.ui.book
 
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Card
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.williamv.debtmake.R
 import com.williamv.debtmake.model.Book
 import com.williamv.debtmake.viewmodel.BookViewModel
 
 /**
- * BookListScreen：展示所有账本列表
- * @param onSelectBook 点击账本后触发，传入 bookId 和 bookName
- * @param onAddBook 点击添加新账本按钮时触发
+ * 账本列表主页，支持添加新账本、跳转账本详情。
  */
 @Composable
 fun BookListScreen(
-    onSelectBook: (Long, String) -> Unit,
+    onBookClick: (bookId: String) -> Unit,
     onAddBook: () -> Unit,
     bookViewModel: BookViewModel = viewModel()
 ) {
-    val books by bookViewModel.allBooks.collectAsState()
+    val books by bookViewModel.books.collectAsState(initial = emptyList())
+    val mainColor = Color(0xFF1976D2)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Select Book") },
-                backgroundColor = MaterialTheme.colors.primary
+                title = {
+                    Text(
+                        "Select Book",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                },
+                backgroundColor = mainColor,
+                contentColor = Color.White
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddBook) {
+            FloatingActionButton(
+                onClick = onAddBook,
+                backgroundColor = mainColor
+            ) {
                 Icon(painterResource(id = R.drawable.ic_add), contentDescription = "Add Book")
             }
         }
-    ) { paddingValues ->
+    ) { padding ->
         if (books.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No books available")
+                Text("No books available.", color = Color.Gray)
             }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
+                    .background(Color(0xFFF7F8FB))
+                    .padding(padding)
             ) {
                 items(books) { book ->
-                    BookListItem(book = book, onSelect = { onSelectBook(book.id, book.name) })
+                    BookListItem(
+                        book = book,
+                        onClick = { onBookClick(book.id) }
+                    )
                 }
+            }
+        }
+        // 底部新增账本按钮
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 22.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Button(
+                onClick = onAddBook,
+                colors = ButtonDefaults.buttonColors(backgroundColor = mainColor),
+                modifier = Modifier
+                    .padding(14.dp)
+                    .fillMaxWidth(0.92f)
+                    .height(46.dp)
+            ) {
+                Text("ADD NEW BOOK", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
             }
         }
     }
 }
 
 /**
- * BookListItem：单个账本卡片
+ * 单条账本卡片
  */
 @Composable
 fun BookListItem(
     book: Book,
-    onSelect: () -> Unit
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .clickable { onSelect() },
-        elevation = 4.dp
+            .padding(horizontal = 12.dp, vertical = 7.dp)
+            .clickable { onClick() },
+        elevation = 5.dp,
+        shape = CircleShape
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 圆形图标（支持本地默认图或自定义图）
-            val painter = if (book.iconUri != null) {
-                rememberImagePainter(data = Uri.parse(book.iconUri))
+            val painter = if (!book.iconUri.isNullOrBlank()) {
+                rememberAsyncImagePainter(model = Uri.parse(book.iconUri))
             } else {
-                painterResource(id = R.drawable.ic_book_default) // 默认图标
+                painterResource(id = R.drawable.ic_book_default)
             }
-
             Image(
                 painter = painter,
                 contentDescription = "Book Icon",
                 modifier = Modifier
-                    .size(48.dp)
-                    .padding(end = 16.dp)
+                    .size(50.dp)
+                    .clip(CircleShape)
             )
-
+            Spacer(modifier = Modifier.width(15.dp))
             Column {
-                Text(text = book.name, style = MaterialTheme.typography.h6)
-                if (!book.description.isNullOrEmpty()) {
+                Text(
+                    text = book.name,
+                    style = MaterialTheme.typography.h6,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (book.description.isNotBlank()) {
                     Text(
                         text = book.description,
                         style = MaterialTheme.typography.body2,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

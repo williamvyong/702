@@ -3,39 +3,40 @@ package com.williamv.debtmake.ui.entry
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.williamv.debtmake.model.Entry
-import com.williamv.debtmake.model.EntryType
-import com.williamv.debtmake.data.repository.EntryRepository
-import kotlinx.coroutines.launch
+import com.williamv.debtmake.viewmodel.EntryViewModel
 
 /**
- * EntryListScreen.kt
- * 路径: ui/entry/EntryListScreen.kt
- * 类型: Composable 页面，用于显示某个账本下所有 Entry 的列表。
- * 参数说明：
- * - bookId: 当前账本的 ID，用于加载对应 Entry。
- * - navController: 导航控制器。
+ * 账本流水账目主列表页面
+ * @param bookId 当前账本ID
+ * @param onBack 返回按钮
+ * @param onEntryClick 点击单条账目
+ * @param onAddEntry 新增账目按钮
+ * @param entryViewModel 可注入
  */
 @Composable
 fun EntryListScreen(
     bookId: Long,
-    navController: NavController,
-    repository: EntryRepository
+    onBack: () -> Unit,
+    onEntryClick: (Entry) -> Unit,
+    onAddEntry: () -> Unit,
+    entryViewModel: EntryViewModel = viewModel()
 ) {
-    val scope = rememberCoroutineScope()
-    var entries by remember { mutableStateOf<List<Entry>>(emptyList()) }
+    // 账目列表
+    val entries by entryViewModel.entries.collectAsState()
 
-    // 初始加载
+    // 页面启动时加载账目列表
     LaunchedEffect(bookId) {
-        repository.getAllEntriesForBook(bookId).collect {
-            entries = it
-        }
+        entryViewModel.loadEntries(bookId = bookId, contactId = -1L) // -1L 代表所有联系人
     }
 
     Scaffold(
@@ -43,48 +44,73 @@ fun EntryListScreen(
             TopAppBar(
                 title = { Text("All Transactions") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onAddEntry) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Entry")
                     }
                 }
             )
         }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            items(entries) { entry ->
-                EntryListItem(entry = entry)
+    ) { padding ->
+        if (entries.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No transactions yet.", color = MaterialTheme.colors.onSurface.copy(alpha = 0.4f))
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                items(entries) { entry ->
+                    EntryListItem(
+                        entry = entry,
+                        onClick = { onEntryClick(entry) }
+                    )
+                }
             }
         }
     }
 }
 
 /**
- * 单条 Entry 的展示样式
+ * 单条账目流水条目
  */
 @Composable
-fun EntryListItem(entry: Entry) {
+fun EntryListItem(
+    entry: Entry,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .clickable { onClick() },
+        elevation = 3.dp
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
             Text(
-                text = if (entry.type == EntryType.BORROW) "My Stack: RM${entry.amount}" else "Their Stack: RM${entry.amount}",
-                style = MaterialTheme.typography.titleMedium,
-                color = if (entry.type == EntryType.BORROW) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                text = "Amount: RM${entry.amount}",
+                style = MaterialTheme.typography.subtitle1,
+                color = if (entry.amount >= 0) MaterialTheme.colors.primary else MaterialTheme.colors.secondary
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Date: ${entry.date}", style = MaterialTheme.typography.bodySmall)
-            if (!entry.note.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Note: ${entry.note}", style = MaterialTheme.typography.bodySmall)
+            entry.description?.takeIf { it.isNotBlank() }?.let {
+                Text(it, style = MaterialTheme.typography.body2, color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f))
             }
+            Text(
+                text = "Time: ${entry.timestamp}",
+                style = MaterialTheme.typography.caption,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+            )
         }
     }
 }

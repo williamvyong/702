@@ -10,12 +10,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * BookViewModel 用于提供账本的 UI 状态与操作逻辑
- * - 所有 Book 列表操作（新增、更新、删除）都从这里调用
+ * BookViewModel：账本数据的 UI 状态和逻辑桥梁
  */
 class BookViewModel(private val repository: BookRepository) : ViewModel() {
 
-    // 账本列表状态
+    // 账本列表 StateFlow
     private val _books = MutableStateFlow<List<Book>>(emptyList())
     val books: StateFlow<List<Book>> = _books.asStateFlow()
 
@@ -23,16 +22,16 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
         loadBooks()
     }
 
-    // 加载账本列表
+    /** 加载账本列表 */
     fun loadBooks() {
         viewModelScope.launch {
-            repository.getAllBooks().collect { bookList ->
-                _books.value = bookList
+            repository.getAllBooks().collect { list ->
+                _books.value = list
             }
         }
     }
 
-    // 插入账本
+    /** 新增账本 */
     fun insertBook(book: Book) {
         viewModelScope.launch {
             repository.insertBook(book)
@@ -40,7 +39,7 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
         }
     }
 
-    // 更新账本
+    /** 更新账本 */
     fun updateBook(book: Book) {
         viewModelScope.launch {
             repository.updateBook(book)
@@ -48,16 +47,16 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
         }
     }
 
-    // 删除账本
-    fun deleteBook(book: Book) {
+    /** 删除账本（传主键ID） */
+    fun deleteBook(bookId: Long) {
         viewModelScope.launch {
-            repository.deleteBook(book)
+            repository.deleteBook(bookId)
             loadBooks()
         }
     }
 
-    // 通过 ID 获取账本（通常用于编辑）
-    suspend fun getBookById(bookId: Long): Book {
+    /** 根据ID获取账本，可空类型 */
+    suspend fun getBookById(bookId: Long): Book? {
         return repository.getBookById(bookId)
     }
 }

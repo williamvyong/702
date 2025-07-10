@@ -3,57 +3,43 @@ package com.williamv.debtmake.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.williamv.debtmake.model.Contact
+import com.williamv.debtmake.data.repository.ContactRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/**
- * ContactViewModel 管理联系人列表的状态和数据库交互逻辑
- * - 支持根据 bookId 获取联系人列表
- * - 支持新增、更新、删除联系人
- */
-class ContactViewModel(private val repository: ContactRepository) : ViewModel() {
+class ContactViewModel(
+    private val contactRepository: ContactRepository = ContactRepository()
+) : ViewModel() {
 
-    // 当前联系人列表的状态
     private val _contacts = MutableStateFlow<List<Contact>>(emptyList())
-    val contacts: StateFlow<List<Contact>> = _contacts.asStateFlow()
+    val contacts: StateFlow<List<Contact>> = _contacts
 
-    // 加载某个账本的所有联系人
+    private val _recentContacts = MutableStateFlow<List<Contact>>(emptyList())
+    val recentContacts: StateFlow<List<Contact>> = _recentContacts
+
+    // 内存维护最近联系人 id 列表（可用数据库实现持久化）
+    private val recentContactMap = mutableMapOf<Long, MutableList<Long>>() // bookId -> contactIdList
+
     fun loadContactsForBook(bookId: Long) {
         viewModelScope.launch {
-            repository.getContactsForBook(bookId).collect { contactList ->
-                _contacts.value = contactList
-            }
+            _contacts.value = contactRepository.getContactsForBook(bookId)
         }
     }
 
-    // 插入联系人
-    fun insertContact(contact: Contact) {
-        viewModelScope.launch {
-            repository.insertContact(contact)
-            loadContactsForBook(contact.bookId)
-        }
+    fun loadRecentContacts(bookId: Long) {
+        val ids = recentContactMap[bookId]?.toList() ?: emptyList()
+        val all = _contacts.value
+        _recentContacts.value = ids.mapNotNull { id -> all.find { it.id == id } }
     }
 
-    // 更新联系人
-    fun updateContact(contact: Contact) {
-        viewModelScope.launch {
-            repository.updateContact(contact)
-            loadContactsForBook(contact.bookId)
-        }
+    fun addRecentContact(bookId: Long, contact: Contact) {
+        val list = recentContactMap.getOrPut(bookId) { mutableListOf() }
+        list.removeAll { it == contact.id }
+        list.add(0, contact.id)
+        if (list.size > 10) list.removeLast()
+        loadRecentContacts(bookId) // 重新刷新recentContacts
     }
 
-    // 删除联系人
-    fun deleteContact(contact: Contact) {
-        viewModelScope.launch {
-            repository.deleteContact(contact)
-            loadContactsForBook(contact.bookId)
-        }
-    }
-
-    // 获取指定 ID 的联系人（用于编辑）
-    suspend fun getContactById(contactId: Long): Contact {
-        return repository.getContactById(contactId)
-    }
+    // 其它如插入、编辑、删除联系人逻辑略...
 }

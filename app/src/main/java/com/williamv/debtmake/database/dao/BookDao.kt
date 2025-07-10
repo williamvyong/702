@@ -1,14 +1,12 @@
 package com.williamv.debtmake.database.dao
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import com.williamv.debtmake.model.Book
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * BookDao：账本表操作接口
+ */
 @Dao
 interface BookDao {
     @Query("SELECT * FROM books ORDER BY updatedAt DESC")
@@ -18,11 +16,11 @@ interface BookDao {
     suspend fun getBookById(bookId: Long): Book?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertBook(book: Book)
+    suspend fun insertBook(book: Book): Long
 
     @Update
     suspend fun updateBook(book: Book)
 
-    @Delete
-    suspend fun deleteBook(book: Book)
+    @Query("DELETE FROM books WHERE id = :bookId")
+    suspend fun deleteBookById(bookId: Long)
 }

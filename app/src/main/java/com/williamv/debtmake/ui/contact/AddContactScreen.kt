@@ -1,4 +1,4 @@
-package com.williamv.debtmake.ui.book
+package com.williamv.debtmake.ui.contact
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -19,24 +19,28 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.williamv.debtmake.R
-import com.williamv.debtmake.model.Book
-import com.williamv.debtmake.viewmodel.BookViewModel
+import com.williamv.debtmake.model.Contact
+import com.williamv.debtmake.viewmodel.ContactViewModel
 
 /**
- * 添加账本页面
- * @param onBookSaved 新建账本完成后的回调
- * @param bookViewModel 可注入
+ * 新建联系人页面
+ * @param bookId 当前账本ID（联系人归属）
+ * @param onContactAdded 新建完成后回调（一般用于返回联系人列表）
+ * @param contactViewModel 可注入
  */
 @Composable
-fun AddBookScreen(
-    onBookSaved: () -> Unit,
-    bookViewModel: BookViewModel = viewModel()
+fun AddContactScreen(
+    bookId: Long,
+    onContactAdded: () -> Unit,
+    contactViewModel: ContactViewModel = viewModel()
 ) {
+    val context = LocalContext.current
+
     var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // 打开图库选择账本图标
+    // 打开图库选择头像
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -46,27 +50,9 @@ fun AddBookScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add New Book") },
-                backgroundColor = MaterialTheme.colors.primary,
-                contentColor = MaterialTheme.colors.onPrimary,
-                actions = {
-                    TextButton(
-                        onClick = {
-                            if (name.isNotBlank()) {
-                                // 保存账本
-                                val book = Book(
-                                    name = name,
-                                    description = description,
-                                    iconUri = imageUri?.toString() ?: ""
-                                )
-                                bookViewModel.insertBook(book)
-                                onBookSaved()
-                            }
-                        }
-                    ) {
-                        Text("SAVE", color = Color.White)
-                    }
-                }
+                title = { Text("Add Contact") },
+                backgroundColor = Color(0xFF1976D2),
+                contentColor = Color.White
             )
         }
     ) { padding ->
@@ -77,17 +63,18 @@ fun AddBookScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 账本图标
+            // 头像选择（默认图/自选图）
             val painter = if (imageUri != null) {
                 rememberAsyncImagePainter(model = imageUri)
             } else {
-                painterResource(id = R.drawable.ic_book_default)
+                painterResource(id = R.drawable.ic_default_avatar)
             }
+
             Image(
                 painter = painter,
-                contentDescription = "Book Icon",
+                contentDescription = "Contact Avatar",
                 modifier = Modifier
-                    .size(96.dp)
+                    .size(90.dp)
                     .border(2.dp, Color.Gray, CircleShape)
                     .clickable { pickImageLauncher.launch("image/*") }
             )
@@ -97,18 +84,39 @@ fun AddBookScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Book Title") },
+                label = { Text("Full Name") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") },
+                value = phone,
+                onValueChange = { phone = it },
+                label = { Text("Phone Number (Optional)") },
                 modifier = Modifier.fillMaxWidth()
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        val contact = Contact(
+                            bookId = bookId,
+                            name = name,
+                            phoneNumber = if (phone.isBlank()) null else phone,
+                            imageUri = imageUri?.toString()
+                        )
+                        contactViewModel.insertContact(contact)
+                        onContactAdded()
+                    }
+                },
+                enabled = name.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("SAVE")
+            }
         }
     }
 }

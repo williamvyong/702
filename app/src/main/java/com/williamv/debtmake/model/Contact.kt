@@ -4,15 +4,13 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * Contact 数据模型，用于存储联系人信息
- * 每个联系人属于一个特定账本（通过 bookId 关联）
+ * Contact 实体类，代表一个账本下的联系人
  */
 @Entity(tableName = "contacts")
 data class Contact(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L,                 // 主键，自增
-    val bookId: Long,                  // 所属账本的 ID（外键，逻辑关联）
-    val name: String,                  // 联系人姓名
-    val phoneNumber: String? = null,   // 可选的电话号码
-    val imageUri: String? = null       // 可选的联系人头像（本地路径或 URI）
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,   // 主键ID，自增
+    val bookId: Long,                // 所属账本ID
+    val name: String,                // 联系人姓名
+    val phoneNumber: String? = null, // 联系电话
+    val imageUri: String? = null     // 头像URI
 )
