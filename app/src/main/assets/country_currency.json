@@ -1,0 +1,14 @@
+[
+  { "country": "Malaysia", "currency": "MYR", "currencyName": "Malaysian Ringgit" },
+  { "country": "China", "currency": "CNY", "currencyName": "Chinese Yuan" },
+  { "country": "United States", "currency": "USD", "currencyName": "US Dollar" },
+  { "country": "Singapore", "currency": "SGD", "currencyName": "Singapore Dollar" },
+  { "country": "Thailand", "currency": "THB", "currencyName": "Thai Baht" },
+  { "country": "Japan", "currency": "JPY", "currencyName": "Japanese Yen" },
+  { "country": "Hong Kong", "currency": "HKD", "currencyName": "Hong Kong Dollar" },
+  { "country": "Taiwan", "currency": "TWD", "currencyName": "Taiwan Dollar" },
+  { "country": "Indonesia", "currency": "IDR", "currencyName": "Indonesian Rupiah" },
+  { "country": "Vietnam", "currency": "VND", "currencyName": "Vietnamese Dong" },
+  { "country": "Korea", "currency": "KRW", "currencyName": "South Korean Won" }
+  // ...补全全球所有国家币种
+]

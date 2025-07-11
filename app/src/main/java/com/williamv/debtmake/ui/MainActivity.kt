@@ -3,22 +3,27 @@ package com.williamv.debtmake.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.williamv.debtmake.navigation.AppNavHost
 import com.williamv.debtmake.ui.theme.DebtMakeTheme
+import com.williamv.debtmake.viewmodel.BookViewModel
+import com.williamv.debtmake.viewmodel.ContactViewModel
+import com.williamv.debtmake.viewmodel.EntryViewModel
 
-/**
- * App 主入口 Activity
- * 负责初始化 Compose、全局主题和导航
- */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
-            // 全局主题
             DebtMakeTheme {
-                // 全局导航（已在 AppNavHost 内部初始化 NavController）
-                AppNavHost()
+                // 使用 viewModel() 注入
+                val bookViewModel: BookViewModel = viewModel()
+                val entryViewModel: EntryViewModel = viewModel()
+                val contactViewModel: ContactViewModel = viewModel()
+                AppNavHost(
+                    bookViewModel = bookViewModel,
+                    entryViewModel = entryViewModel,
+                    contactViewModel = contactViewModel
+                )
             }
         }
     }

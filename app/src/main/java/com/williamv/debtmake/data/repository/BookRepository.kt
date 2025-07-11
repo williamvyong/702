@@ -1,26 +1,23 @@
 package com.williamv.debtmake.data.repository
 
-import com.williamv.debtmake.database.dao.BookDao
+import android.content.Context
+import com.williamv.debtmake.database.DatabaseProvider
 import com.williamv.debtmake.model.Book
-import kotlinx.coroutines.flow.Flow
 
 /**
- * BookRepository 用于对账本数据进行数据库封装，供 ViewModel 层调用
+ * BookRepository
+ * 账本数据仓库，封装所有账本数据库操作
  */
-class BookRepository(private val bookDao: BookDao) {
+class BookRepository(context: Context) {
+    private val bookDao = DatabaseProvider.getInstance(context).bookDao()
 
-    /** 获取所有账本（Flow 监听） */
-    fun getAllBooks(): Flow<List<Book>> = bookDao.getAllBooks()
+    fun getAllBooks(): List<Book> = bookDao.getAllBooks()
 
-    /** 根据ID获取账本，可能为null */
-    suspend fun getBookById(bookId: Long): Book? = bookDao.getBookById(bookId)
+    fun getBookById(id: Long): Book? = bookDao.getBookById(id)
 
-    /** 新增账本，返回主键ID */
-    suspend fun insertBook(book: Book): Long = bookDao.insertBook(book)
+    fun insertBook(book: Book): Long = bookDao.insertBook(book) // 注意返回Long类型
 
-    /** 更新账本 */
-    suspend fun updateBook(book: Book) = bookDao.updateBook(book)
+    fun updateBook(book: Book) = bookDao.updateBook(book)
 
-    /** 删除账本（根据主键ID） */
-    suspend fun deleteBook(bookId: Long) = bookDao.deleteBookById(bookId)
+    fun deleteBook(book: Book) = bookDao.deleteBook(book)
 }

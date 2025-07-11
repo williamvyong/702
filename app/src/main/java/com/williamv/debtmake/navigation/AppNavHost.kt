@@ -1,137 +1,165 @@
 package com.williamv.debtmake.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.williamv.debtmake.model.Book
-import com.williamv.debtmake.model.Contact
 import com.williamv.debtmake.ui.book.BookDetailScreen
-import com.williamv.debtmake.ui.book.SelectBookScreen
+import com.williamv.debtmake.ui.book.BookListScreen
+import com.williamv.debtmake.ui.book.EditBookScreen
+import com.williamv.debtmake.ui.book.AddBookScreen
 import com.williamv.debtmake.ui.contact.SelectContactScreen
+import com.williamv.debtmake.ui.contact.ContactDetailScreen
 import com.williamv.debtmake.ui.entry.AddTransactionScreen
-import com.williamv.debtmake.ui.settings.CurrencySelectorScreen
-import com.williamv.debtmake.ui.settings.SettingsScreen
-import com.williamv.debtmake.util.RecentBookStore
+import com.williamv.debtmake.ui.entry.EntryStackScreen
+import com.williamv.debtmake.ui.entry.EntryListScreen
+import com.williamv.debtmake.viewmodel.ContactViewModel
+import com.williamv.debtmake.viewmodel.EntryViewModel
 import com.williamv.debtmake.viewmodel.BookViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
+/**
+ * 全局导航主入口
+ * @param bookViewModel 账本ViewModel
+ * @param entryViewModel 账目流水ViewModel
+ * @param contactViewModel 联系人ViewModel
+ * @param startDestination 初始页面路由
+ */
 @Composable
 fun AppNavHost(
-    navController: NavHostController = rememberNavController(),
-    bookViewModel: BookViewModel = viewModel()
+    bookViewModel: BookViewModel,
+    entryViewModel: EntryViewModel,
+    contactViewModel: ContactViewModel,
+    startDestination: String = "bookList"
 ) {
+    val navController = rememberNavController()
     val context = LocalContext.current
-    var initialBookId by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
 
-    // 启动时读取最近账本 id
-    LaunchedEffect(Unit) {
-        val books = bookViewModel.books.value
-        val recentBookId = withContext(Dispatchers.IO) {
-            RecentBookStore.getRecentBookId(context)
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
+        // 账本列表
+        composable("bookList") {
+            BookListScreen(
+                onBookClick = { bookId ->
+                    navController.navigate("bookDetail/$bookId")
+                },
+                onAddBook = { navController.navigate("addBook") },
+                bookViewModel = bookViewModel
+            )
         }
-        initialBookId = recentBookId?.takeIf { id -> books.any { it.id == id } }
-            ?: books.firstOrNull()?.id
-        isLoading = false
-    }
-
-    if (isLoading) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+        // 添加账本
+        composable("addBook") {
+            AddBookScreen(
+                onBookSaved = { navController.popBackStack() },
+                bookViewModel = bookViewModel
+            )
         }
-    } else if (initialBookId != null) {
-        NavHost(
-            navController = navController,
-            startDestination = "bookDetail/{bookId}"
-        ) {
-            composable(
-                route = "bookDetail/{bookId}",
-                arguments = listOf(navArgument("bookId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
-                val books = bookViewModel.books.value
-                val book = books.firstOrNull { it.id == bookId }
-                if (book != null) {
-                    BookDetailScreen(
-                        book = book,
-                        onBack = { navController.popBackStack() },
-                        onAddCollect = { navController.navigate("addTransaction") },
-                        onAddPayout = { navController.navigate("addTransaction") },
-                        onMore = { /* 更多操作 */ }
-                    )
-                } else {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+        // 编辑账本
+        composable(
+            route = "editBook/{bookId}",
+            arguments = listOf(navArgument("bookId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getLong("bookId") ?: 0L
+            EditBookScreen(
+                bookId = bookId,
+                onEditSuccess = { navController.popBackStack() },
+                onBack = { navController.popBackStack() },
+                bookViewModel = bookViewModel
+            )
+        }
+        // 账本详情
+        composable(
+            route = "bookDetail/{bookId}",
+            arguments = listOf(navArgument("bookId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getLong("bookId") ?: 0L
+            BookDetailScreen(
+                bookId = bookId,
+                entryViewModel = entryViewModel,
+                contactViewModel = contactViewModel,
+                onBack = { navController.popBackStack() },
+                onAddCollect = { navController.navigate("addTransaction/$bookId/collect") },
+                onAddPayout = { navController.navigate("addTransaction/$bookId/payout") },
+                onSelectContact = { navController.navigate("selectContact/$bookId") }
+            )
+        }
+        // 新增账目
+        composable(
+            route = "addTransaction/{bookId}/{type}",
+            arguments = listOf(
+                navArgument("bookId") { type = NavType.LongType },
+                navArgument("type") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getLong("bookId") ?: 0L
+            val type = backStackEntry.arguments?.getString("type") ?: "collect"
+            AddTransactionScreen(
+                bookId = bookId,
+                entryType = type,
+                entryViewModel = entryViewModel,
+                contactViewModel = contactViewModel,
+                onSaved = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        // 某账本下某联系人的流水详情
+        composable(
+            route = "entryStack/{bookId}/{contactId}",
+            arguments = listOf(
+                navArgument("bookId") { type = NavType.LongType },
+                navArgument("contactId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getLong("bookId") ?: 0L
+            val contactId = backStackEntry.arguments?.getLong("contactId") ?: 0L
+            EntryStackScreen(
+                bookId = bookId,
+                contactId = contactId,
+                entryViewModel = entryViewModel,
+                contactViewModel = contactViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+        // 所有账本流水总览
+        composable("entryList") {
+            EntryListScreen(
+                entryViewModel = entryViewModel,
+                onEntryClick = { bookId, contactId ->
+                    navController.navigate("entryStack/$bookId/$contactId")
                 }
-            }
-
-            composable("addTransaction") { backStackEntry ->
-                val savedStateHandle = backStackEntry.savedStateHandle
-                val selectedContact = savedStateHandle.get<Contact>("selectedContact")
-                val selectedBook = savedStateHandle.get<Book>("selectedBook")
-                AddTransactionScreen(
-                    navController = navController,
-                    onBack = { navController.popBackStack() },
-                    onSaved = { navController.popBackStack() },
-                    selectedContact = selectedContact,
-                    selectedBook = selectedBook,
-                    onClearContact = { savedStateHandle.remove<Contact>("selectedContact") },
-                    onClearBook = { savedStateHandle.remove<Book>("selectedBook") }
-                )
-            }
-
-            composable("selectContact") {
-                SelectContactScreen(
-                    onBack = { navController.popBackStack() },
-                    onSelected = { contact ->
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("selectedContact", contact)
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            composable("selectBook") {
-                SelectBookScreen(
-                    onBack = { navController.popBackStack() },
-                    onSelected = { book ->
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("selectedBook", book)
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            composable("settings") {
-                SettingsScreen(
-                    onBack = { navController.popBackStack() },
-                    navController = navController
-                )
-            }
-
-            composable("currency_selector") {
-                CurrencySelectorScreen(
-                    navController = navController,
-                    onCurrencySelected = { currency ->
-                        // 存储到 DataStore 或 SharedPreferences
-                    }
-                )
-            }
+            )
+        }
+        // 联系人选择页面
+        composable(
+            route = "selectContact/{bookId}",
+            arguments = listOf(navArgument("bookId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getLong("bookId") ?: 0L
+            SelectContactScreen(
+                bookId = bookId,
+                contactViewModel = contactViewModel,
+                onContactSelected = { contactId ->
+                    navController.navigate("entryStack/$bookId/$contactId")
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        // 联系人详情页面
+        composable(
+            route = "contactDetail/{contactId}",
+            arguments = listOf(navArgument("contactId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val contactId = backStackEntry.arguments?.getLong("contactId") ?: 0L
+            ContactDetailScreen(
+                contactId = contactId,
+                contactViewModel = contactViewModel,
+                entryViewModel = entryViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

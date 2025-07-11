@@ -1,53 +1,34 @@
 package com.williamv.debtmake.data.repository
 
+import android.content.Context
+import com.williamv.debtmake.database.DatabaseProvider
 import com.williamv.debtmake.model.Entry
-import com.williamv.debtmake.data.dao.EntryDao
 
 /**
- * 账目流水数据仓库，负责所有账目流转、归档、增删查等业务
+ * EntryRepository
+ * 账目流水数据仓库
  */
-class EntryRepository(
-    private val entryDao: EntryDao = EntryDao.getInstance()
-) {
-    /**
-     * 查询账本下某联系人的所有未归档流水（Active）
-     */
-    suspend fun getEntriesForContactInBook(bookId: Long, contactId: Long): List<Entry> {
-        return entryDao.getEntriesForContactInBook(bookId, contactId)
-    }
+class EntryRepository(context: Context) {
+    private val entryDao = DatabaseProvider.getInstance(context).entryDao()
 
-    /**
-     * 查询账本下某联系人的所有已归档流水（Paid off）
-     */
-    suspend fun getPaidoffEntriesForContactInBook(bookId: Long, contactId: Long): List<Entry> {
-        return entryDao.getPaidoffEntriesForContactInBook(bookId, contactId)
-    }
+    // 查询所有账本下所有流水
+    fun getAllEntries(): List<Entry> = entryDao.getAllEntries()
 
-    /**
-     * 新增账目流水
-     */
-    suspend fun insertEntry(entry: Entry) {
-        entryDao.insertEntry(entry)
-    }
+    // 查询某账本下所有流水
+    fun getEntriesForBook(bookId: Long): List<Entry> = entryDao.getEntriesForBook(bookId)
 
-    /**
-     * 更新账目
-     */
-    suspend fun updateEntry(entry: Entry) {
-        entryDao.updateEntry(entry)
-    }
+    // 查询某账本下某联系人所有流水
+    fun getEntriesForContactInBook(bookId: Long, contactId: Long): List<Entry> =
+        entryDao.getEntriesForContactInBook(bookId, contactId)
 
-    /**
-     * 删除账目
-     */
-    suspend fun deleteEntry(entry: Entry) {
-        entryDao.deleteEntry(entry)
-    }
+    fun getEntryById(id: Long): Entry? = entryDao.getEntryById(id)
 
-    /**
-     * 归档所有已平仓流水为 Paidoff（isPaidoff 字段置1）
-     */
-    suspend fun archivePaidoff(bookId: Long, contactId: Long) {
-        entryDao.archivePaidoff(bookId, contactId)
+    fun insertEntry(entry: Entry): Long = entryDao.insertEntry(entry)
+
+    fun updateEntry(entry: Entry) = entryDao.updateEntry(entry)
+
+    fun deleteEntry(entryId: Long) {
+        val entry = entryDao.getEntryById(entryId)
+        entry?.let { entryDao.deleteEntry(it) }
     }
 }

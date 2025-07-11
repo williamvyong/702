@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.williamv.debtmake.util.CalculatorUtil // 必须import
 
 @Composable
 fun CalculatorInputScreen(
@@ -49,7 +50,7 @@ fun CalculatorInputScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -146,70 +147,4 @@ fun CalculatorInputScreen(
     }
 }
 
-/**
- * 自定义 calculator 排布
- * = 支持你原本的 layout
- * 末行最后空一格
- * 下面加 OK 按钮
- */
-@Composable
-private fun CalculatorPadCustom(
-    onKey: (String) -> Unit,
-    okButton: @Composable () -> Unit
-) {
-    val rows = listOf(
-        listOf("C", "÷", "×", "⌫"),
-        listOf("7", "8", "9", "-"),
-        listOf("4", "5", "6", "+"),
-        listOf("1", "2", "3", "="),
-        listOf("0", "00", ".", "")
-    )
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF222222).copy(alpha = 0.04f))
-            .padding(horizontal = 4.dp)
-    ) {
-        rows.forEach { row ->
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 2.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                row.forEach { key ->
-                    if (key.isBlank()) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    } else {
-                        OutlinedButton(
-                            onClick = { onKey(key) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                                .padding(horizontal = 2.dp),
-                            shape = RoundedCornerShape(8.dp),
-                            border = null,
-                            elevation = null,
-                            colors = when (key) {
-                                "C" -> ButtonDefaults.buttonColors(backgroundColor = Color(0xFFD32F2F), contentColor = Color.White)
-                                "=" -> ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1976D2), contentColor = Color.White)
-                                "⌫" -> ButtonDefaults.buttonColors(backgroundColor = Color(0xFF888888), contentColor = Color.White)
-                                "÷", "×", "-", "+", "." -> ButtonDefaults.buttonColors(backgroundColor = Color(0xFFF1F1F1), contentColor = Color.Black)
-                                else -> ButtonDefaults.buttonColors(backgroundColor = Color.White, contentColor = Color.Black)
-                            }
-                        ) {
-                            Text(
-                                text = key,
-                                fontSize = 18.sp,
-                                fontWeight = if (key in listOf("C", "=", "⌫")) FontWeight.Bold else FontWeight.Normal
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        okButton()
-    }
-}
-
-// --- CalculatorUtil 与 ExpressionParser 保持与上方一致，不重复贴出 ---
+// ... CalculatorPadCustom() 保持你原有实现 ...

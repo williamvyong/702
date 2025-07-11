@@ -1,45 +1,24 @@
 package com.williamv.debtmake.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.williamv.debtmake.model.Contact
 import com.williamv.debtmake.data.repository.ContactRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import com.williamv.debtmake.model.Contact
 
-class ContactViewModel(
-    private val contactRepository: ContactRepository = ContactRepository()
-) : ViewModel() {
+/**
+ * ContactViewModel
+ * 管理 Contact 数据逻辑
+ */
+class ContactViewModel(context: Context) : ViewModel() {
+    private val contactRepository = ContactRepository(context)
 
-    private val _contacts = MutableStateFlow<List<Contact>>(emptyList())
-    val contacts: StateFlow<List<Contact>> = _contacts
+    fun getContactsForBook(bookId: Long): List<Contact> = contactRepository.getContactsForBook(bookId)
 
-    private val _recentContacts = MutableStateFlow<List<Contact>>(emptyList())
-    val recentContacts: StateFlow<List<Contact>> = _recentContacts
+    fun getContactById(id: Long): Contact? = contactRepository.getContactById(id)
 
-    // 内存维护最近联系人 id 列表（可用数据库实现持久化）
-    private val recentContactMap = mutableMapOf<Long, MutableList<Long>>() // bookId -> contactIdList
+    fun insertContact(contact: Contact): Long = contactRepository.insertContact(contact)
 
-    fun loadContactsForBook(bookId: Long) {
-        viewModelScope.launch {
-            _contacts.value = contactRepository.getContactsForBook(bookId)
-        }
-    }
+    fun updateContact(contact: Contact) = contactRepository.updateContact(contact)
 
-    fun loadRecentContacts(bookId: Long) {
-        val ids = recentContactMap[bookId]?.toList() ?: emptyList()
-        val all = _contacts.value
-        _recentContacts.value = ids.mapNotNull { id -> all.find { it.id == id } }
-    }
-
-    fun addRecentContact(bookId: Long, contact: Contact) {
-        val list = recentContactMap.getOrPut(bookId) { mutableListOf() }
-        list.removeAll { it == contact.id }
-        list.add(0, contact.id)
-        if (list.size > 10) list.removeLast()
-        loadRecentContacts(bookId) // 重新刷新recentContacts
-    }
-
-    // 其它如插入、编辑、删除联系人逻辑略...
+    fun deleteContact(contactId: Long) = contactRepository.deleteContact(contactId)
 }

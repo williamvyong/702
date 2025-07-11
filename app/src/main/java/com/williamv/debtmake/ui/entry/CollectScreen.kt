@@ -4,7 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,7 +35,7 @@ fun CollectScreen(
             TopAppBar(
                 title = { Text("Collect") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
                 },
                 actions = {
                     IconButton(onClick = onCollect) {
@@ -55,7 +55,7 @@ fun CollectScreen(
         ) {
             // 到期日
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.Gray)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Due date", color = Color.Gray)
                 Spacer(modifier = Modifier.width(16.dp))

@@ -1,32 +1,34 @@
 package com.williamv.debtmake.database.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import com.williamv.debtmake.model.Transaction
-import kotlinx.coroutines.flow.Flow
 
 /**
- * TransactionDao：交易表操作接口
+ * TransactionDao
+ * 账本扩展交易接口
  */
 @Dao
 interface TransactionDao {
+    @Query("SELECT * FROM transactions WHERE bookId = :bookId")
+    fun getTransactionsForBook(bookId: Long): List<Transaction>
+
+    @Query("SELECT * FROM transactions WHERE bookId = :bookId AND contactId = :contactId")
+    fun getTransactionsForContact(bookId: Long, contactId: Long): List<Transaction>
+
+    @Query("SELECT * FROM transactions WHERE id = :id")
+    fun getTransactionById(id: Long): Transaction?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTransaction(transaction: Transaction): Long
+    fun insertTransaction(transaction: Transaction): Long
 
     @Update
-    suspend fun updateTransaction(transaction: Transaction)
+    fun updateTransaction(transaction: Transaction)
 
-    @Query("DELETE FROM transactions WHERE id = :transactionId")
-    suspend fun deleteTransactionById(transactionId: Long)
-
-    @Query("SELECT * FROM transactions WHERE bookId = :bookId ORDER BY timestamp DESC")
-    fun getTransactionsForBook(bookId: Long): Flow<List<Transaction>>
-
-    @Query("SELECT * FROM transactions WHERE bookId = :bookId AND contactId = :contactId ORDER BY timestamp DESC")
-    fun getTransactionsForContact(bookId: Long, contactId: Long): Flow<List<Transaction>>
-
-    @Query("SELECT * FROM transactions ORDER BY timestamp DESC")
-    fun getAllTransactions(): Flow<List<Transaction>>
-
-    @Query("SELECT * FROM transactions WHERE id = :transactionId LIMIT 1")
-    suspend fun getTransactionById(transactionId: Long): Transaction?
+    @Delete
+    fun deleteTransaction(transaction: Transaction)
 }

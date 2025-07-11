@@ -1,3 +1,4 @@
+// 文件路径: app/src/main/java/com/williamv.debtmake/ui/contact/SelectContactScreen.kt
 package com.williamv.debtmake.ui.contact
 
 import androidx.compose.foundation.Image
@@ -9,7 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,29 +25,25 @@ import com.williamv.debtmake.R
 import com.williamv.debtmake.model.Contact
 import com.williamv.debtmake.viewmodel.ContactViewModel
 
+/**
+ * 联系人选择页面
+ * @param onBack 返回回调
+ * @param onSelected 选中联系人回调
+ * @param contactViewModel 联系人ViewModel
+ */
 @Composable
 fun SelectContactScreen(
     onBack: () -> Unit,
     onSelected: (Contact) -> Unit,
     contactViewModel: ContactViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    // 顶部主色
     val mainColor = Color(0xFF1976D2)
-
-    // Tab 状态
-    var selectedTab by remember { mutableStateOf(0) } // 0 = Recently, 1 = Contacts
-
-    // 搜索框
+    var selectedTab by remember { mutableStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
-
-    // 联系人数据
-    val allContacts by contactViewModel.allContacts.collectAsState(initial = emptyList())
+    val allContacts by contactViewModel.contacts.collectAsState(initial = emptyList())
     val recentContacts by contactViewModel.recentContacts.collectAsState(initial = emptyList())
 
-    // 当前 Tab 数据
     val showContacts = if (selectedTab == 0) recentContacts else allContacts
-
-    // 搜索过滤
     val filteredContacts = showContacts.filter {
         searchQuery.isBlank() ||
                 it.name.contains(searchQuery, ignoreCase = true) ||
@@ -56,14 +53,13 @@ fun SelectContactScreen(
     Scaffold(
         topBar = {
             Column {
-                // 蓝色主栏
                 TopAppBar(
                     backgroundColor = mainColor,
                     contentColor = Color.White,
                     elevation = 0.dp,
                     title = {
                         Text(
-                            "Select contact",
+                            "Select Contact",
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
                             color = Color.White
@@ -71,11 +67,10 @@ fun SelectContactScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                         }
                     }
                 )
-                // Tab
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -105,7 +100,6 @@ fun SelectContactScreen(
                 .padding(padding)
                 .background(Color(0xFFF7F8FB))
         ) {
-            // 搜索栏
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -115,7 +109,6 @@ fun SelectContactScreen(
                     .padding(12.dp)
             )
 
-            // 联系人列表
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()

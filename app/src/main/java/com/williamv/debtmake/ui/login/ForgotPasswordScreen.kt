@@ -1,4 +1,4 @@
-// 文件路径: app/src/main/java/com/williamv/debtmake/ui/login/ForgotPasswordScreen.kt
+// 文件路径: app/src/main/java/com/williamv.debtmake/ui/login/ForgotPasswordScreen.kt
 package com.williamv.debtmake.ui.login
 
 import androidx.compose.foundation.layout.*
@@ -15,6 +15,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.williamv.debtmake.viewmodel.ForgotPasswordViewModel
 import kotlinx.coroutines.launch
 
+/**
+ * 忘记密码页面
+ * @param onBackToLogin 回到登录页回调
+ */
 @Composable
 fun ForgotPasswordScreen(
     onBackToLogin: () -> Unit
@@ -27,11 +31,9 @@ fun ForgotPasswordScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
-
-    // 用于显示 Snackbar 提示
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 显示错误或成功信息
+    // 错误或成功弹窗提示
     LaunchedEffect(errorMessage, successMessage) {
         errorMessage?.let {
             snackbarHostState.showSnackbar(it, duration = SnackbarDuration.Short)
@@ -56,7 +58,6 @@ fun ForgotPasswordScreen(
                 text = "Reset Password",
                 style = MaterialTheme.typography.headlineSmall
             )
-
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
@@ -85,9 +86,7 @@ fun ForgotPasswordScreen(
                 }
                 Text("Send Reset Link")
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             TextButton(onClick = onBackToLogin) {
                 Text("Back to Login")
             }

@@ -1,182 +1,109 @@
 package com.williamv.debtmake.ui.book
 
-import android.content.Context
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.williamv.debtmake.model.Book
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import com.williamv.debtmake.util.RecentBookStore
+import com.williamv.debtmake.viewmodel.EntryViewModel
+import com.williamv.debtmake.viewmodel.ContactViewModel
+
+private val Icons.Filled.Remove: Any
 
 /**
- * 账本详情页面（统计、联系人、Tab、按钮等全部用新词 Collect/Payout/Total collect amount/Total payout amount）
- * 进入时自动保存最近访问的 bookId
+ * BookDetailScreen
+ * 展示某本账本的所有联系人、流水统计等
+ *
+ * @param bookId 当前账本的ID
+ * @param entryViewModel 账目流水 ViewModel
+ * @param contactViewModel 联系人 ViewModel
+ * @param onBack 返回按钮回调
+ * @param onAddCollect 新增Collect账目回调
+ * @param onAddPayout 新增Payout账目回调
+ * @param onSelectContact 跳转选择联系人回调
  */
+@ExperimentalMaterial3Api
 @Composable
 fun BookDetailScreen(
-    book: Book,
-    onBack: () -> Unit,
-    onAddCollect: () -> Unit,
-    onAddPayout: () -> Unit,
-    onMore: () -> Unit
+    bookId: Long,
+    entryViewModel: EntryViewModel,
+    contactViewModel: ContactViewModel,
+    onBack: () -> Unit = {},
+    onAddCollect: () -> Unit = {},
+    onAddPayout: () -> Unit = {},
+    onSelectContact: () -> Unit = {}
 ) {
-    // -------- ① 保存最近访问的账本 id --------
-    val context = LocalContext.current
-    LaunchedEffect(book.id) {
-        CoroutineScope(Dispatchers.IO).launch {
-            RecentBookStore.saveRecentBookId(context, book.id)
-        }
-    }
-
-    val collectTotal = book.collectTotal
-    val payoutTotal = book.payoutTotal
-    val remaining = collectTotal - payoutTotal
+    // 通过 ViewModel 拉取数据
+    val contacts by remember { mutableStateOf(contactViewModel.getContactsForBook(bookId)) }
+    val entries by remember { mutableStateOf(entryViewModel.getEntriesForBook(bookId)) }
+    // TODO: 账本名称应通过 ViewModel 查询
+    val bookName = "Book #$bookId"
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(book.name) },
+                title = { Text(bookName) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { onBack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    IconButton(onClick = onMore) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More")
+                    IconButton(onClick = onAddCollect) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Collect")
                     }
-                },
-                backgroundColor = if (remaining >= 0) Color(0xFFD32F2F) else Color(0xFF388E3C),
-                contentColor = Color.White
-            )
-        },
-        floatingActionButton = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(end = 8.dp)
-            ) {
-                FloatingActionButton(
-                    onClick = onAddCollect,
-                    backgroundColor = Color(0xFFD32F2F)
-                ) { Text("+", fontSize = 28.sp, color = Color.White) }
+                    IconButton(onClick = onAddPayout) {
+                        Icon(Icons.Default.Remove, contentDescription = "Add Payout",
 
-                FloatingActionButton(
-                    onClick = onAddPayout,
-                    backgroundColor = Color(0xFF388E3C)
-                ) { Text("-", fontSize = 28.sp, color = Color.White) }
-            }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            // 统计面板
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(12.dp),
-                elevation = 6.dp
-            ) {
-                Column(
-                    modifier = Modifier
-                        .background(Color.White)
-                        .padding(20.dp)
-                ) {
-                    Text(
-                        text = "Overview",
-                        style = MaterialTheme.typography.subtitle1,
-                        color = Color.Black
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text("Total collect amount", color = Color(0xFF388E3C))
-                            Text(
-                                String.format("%.2f RM", collectTotal),
-                                color = Color(0xFFD32F2F),
-                                fontSize = 20.sp
-                            )
-                        }
-                        Column {
-                            Text("Total payout amount", color = Color(0xFFD32F2F))
-                            Text(
-                                String.format("%.2f RM", payoutTotal),
-                                color = Color(0xFF388E3C),
-                                fontSize = 20.sp
-                            )
-                        }
-                        Column {
-                            Text("Remaining", color = Color(0xFFFBC02D))
-                            Text(
-                                String.format("%.2f RM", remaining),
-                                color = Color(0xFFFBC02D),
-                                fontSize = 20.sp
-                            )
-                        }
+                        )
                     }
                 }
-            }
-
-            // Tab 或按钮可用于切换/筛选
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                TabButton(
-                    selected = true,
-                    text = "Collect",
-                    color = Color(0xFFD32F2F),
-                    onClick = onAddCollect
-                )
-                TabButton(
-                    selected = false,
-                    text = "Payout",
-                    color = Color(0xFF388E3C),
-                    onClick = onAddPayout
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            // 这里可放联系人流水列表、统计等内容（略）
+            )
         }
-    }
-}
-
-@Composable
-fun TabButton(selected: Boolean, text: String, color: Color, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            backgroundColor = if (selected) color else Color.White,
-            contentColor = if (selected) Color.White else color
-        ),
-        shape = RoundedCornerShape(24.dp),
-        modifier = Modifier
-            .height(36.dp)
-            .weight(1f)
-    ) {
-        Text(text)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
+        ) {
+            // 账本统计数据
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("联系人数: ${contacts.size}")
+                Text("流水数: ${entries.size}")
+            }
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            // 联系人列表
+            Text(
+                "联系人列表",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(16.dp)
+            )
+            contacts.forEach { contact ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clickable { onSelectContact() },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 可扩展显示头像等
+                    Text(contact.name, modifier = Modifier.weight(1f))
+                    Text(contact.phoneNumber ?: "", modifier = Modifier.padding(start = 16.dp))
+                }
+                HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            }
+        }
     }
 }

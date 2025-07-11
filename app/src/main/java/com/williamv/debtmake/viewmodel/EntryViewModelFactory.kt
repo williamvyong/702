@@ -5,16 +5,16 @@ import androidx.lifecycle.ViewModelProvider
 import com.williamv.debtmake.data.repository.EntryRepository
 
 /**
- * EntryViewModelFactory：账目VM工厂
+ * EntryViewModel 工厂，用于注入 EntryRepository
  */
 class EntryViewModelFactory(
-    private val repository: EntryRepository
+    private val entryRepository: EntryRepository
 ) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(EntryViewModel::class.java)) {
-            return EntryViewModel(repository) as T
+            @Suppress("UNCHECKED_CAST")
+            return EntryViewModel(entryRepository) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

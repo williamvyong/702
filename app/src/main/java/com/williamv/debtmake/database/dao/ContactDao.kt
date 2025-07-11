@@ -1,29 +1,30 @@
 package com.williamv.debtmake.database.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import com.williamv.debtmake.model.Contact
-import kotlinx.coroutines.flow.Flow
 
 /**
- * ContactDao：联系人表操作接口
+ * 联系人表 DAO
  */
 @Dao
 interface ContactDao {
-    @Query("SELECT * FROM contacts WHERE bookId = :bookId")
-    fun getContactsForBook(bookId: Long): Flow<List<Contact>>
+    @Query("SELECT * FROM contacts ORDER BY name COLLATE NOCASE")
+    fun getAllContacts(): List<Contact>
 
-    @Query("SELECT * FROM contacts")
-    fun getAllContacts(): Flow<List<Contact>>
+    @Query("SELECT * FROM contacts WHERE id = :id")
+    fun getContactById(id: Long): Contact?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertContact(contact: Contact): Long
+    fun insertContact(contact: Contact): Long
 
     @Update
-    suspend fun updateContact(contact: Contact)
+    fun updateContact(contact: Contact)
 
-    @Query("DELETE FROM contacts WHERE id = :contactId")
-    suspend fun deleteContactById(contactId: Long)
-
-    @Query("SELECT * FROM contacts WHERE id = :contactId")
-    suspend fun getContactById(contactId: Long): Contact?
+    @Delete
+    fun deleteContact(contact: Contact)
 }

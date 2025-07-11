@@ -1,26 +1,20 @@
 package com.williamv.debtmake.util
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-
-val Context.recentBookDataStore by preferencesDataStore("recent_book_store")
+import android.content.SharedPreferences
 
 object RecentBookStore {
-    private val RECENT_BOOK_ID_KEY = stringPreferencesKey("recent_book_id")
+    private const val PREF_NAME = "recent_book_prefs"
+    private const val KEY_BOOK_ID = "book_id"
 
-    suspend fun saveRecentBookId(context: Context, bookId: String) {
-        context.recentBookDataStore.edit { prefs ->
-            prefs[RECENT_BOOK_ID_KEY] = bookId
-        }
+    fun setRecentBookId(context: Context, bookId: Long) {
+        val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putLong(KEY_BOOK_ID, bookId).apply()
     }
 
-    suspend fun getRecentBookId(context: Context): String? {
-        return context.recentBookDataStore.data
-            .map { prefs -> prefs[RECENT_BOOK_ID_KEY] }
-            .first()
+    fun getRecentBookId(context: Context): Long? {
+        val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val id = prefs.getLong(KEY_BOOK_ID, -1L)
+        return if (id != -1L) id else null
     }
 }

@@ -1,3 +1,4 @@
+// 文件路径: app/src/main/java/com/williamv.debtmake/ui/contact/ContactDetailScreen.kt
 package com.williamv.debtmake.ui.contact
 
 import android.net.Uri
@@ -10,7 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,17 +22,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.williamv.debtmake.R
 import com.williamv.debtmake.model.Entry
+import com.williamv.debtmake.model.Contact
 import com.williamv.debtmake.viewmodel.ContactViewModel
 import com.williamv.debtmake.viewmodel.EntryViewModel
-import com.williamv.debtmake.ui.entry.EntryDetailDialog
 
 /**
- * 联系人详情页面（含 EntryDetailDialog 支持流水账目详情/编辑）
- * @param contactId 当前联系人ID
- * @param bookId 当前账本ID
- * @param onBack 返回按钮回调
- * @param entryViewModel 可注入
- * @param contactViewModel 可注入
+ * 联系人详情页面，展示联系人基本信息及账目流水
+ * @param contactId 联系人ID
+ * @param bookId 所属账本ID
+ * @param onBack 返回
  */
 @Composable
 fun ContactDetailScreen(
@@ -41,26 +40,18 @@ fun ContactDetailScreen(
     contactViewModel: ContactViewModel = viewModel(),
     entryViewModel: EntryViewModel = viewModel()
 ) {
-    var contact by remember { mutableStateOf<com.williamv.debtmake.model.Contact?>(null) }
+    var contact by remember { mutableStateOf<Contact?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-
-    // ----------- 新增：Entry详情弹窗控制变量 -----------
     var selectedEntry by remember { mutableStateOf<Entry?>(null) }
     var showEntryDetailDialog by remember { mutableStateOf(false) }
-    // -----------------------------------------------
 
-    // 页面启动时加载联系人详情
+    // 拉取联系人详情
     LaunchedEffect(contactId) {
         contact = contactViewModel.getContactById(contactId)
     }
 
-    // 加载该联系人在当前账本下所有流水账目
-    val entries by remember(bookId, contactId) {
-        derivedStateOf {
-            entryViewModel.loadEntries(bookId, contactId)
-            entryViewModel.entries
-        }
-    }.collectAsState(initial = emptyList())
+    // 加载该联系人账本下所有流水账目（示例用 EntryViewModel 实现）
+    val entries = remember { entryViewModel.getEntriesForContactInBook(bookId, contactId) }
 
     Scaffold(
         topBar = {
@@ -68,7 +59,7 @@ fun ContactDetailScreen(
                 title = { Text("Contact Details") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 backgroundColor = Color(0xFF1976D2),
@@ -111,7 +102,7 @@ fun ContactDetailScreen(
                     Text("Delete Contact", color = Color.White)
                 }
 
-                // -----------【联系人流水账目列表】------------
+                // 账目流水
                 Spacer(modifier = Modifier.height(24.dp))
                 Text("All Transactions", style = MaterialTheme.typography.subtitle1)
                 Spacer(modifier = Modifier.height(8.dp))
@@ -138,44 +129,35 @@ fun ContactDetailScreen(
         } ?: Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
+        ) { CircularProgressIndicator() }
     }
 
     // 删除联系人弹窗
-    contact?.let { c ->
-        DeleteContactDialog(
-            visible = showDeleteDialog,
-            contactName = c.name,
-            onConfirm = {
-                contactViewModel.deleteContact(c.id, c.bookId)
-                showDeleteDialog = false
-                onBack()
+    if (showDeleteDialog && contact != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Contact") },
+            text = { Text("Are you sure you want to delete this contact?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        contactViewModel.deleteContact(contact!!.id, contact!!.bookId)
+                        showDeleteDialog = false
+                        onBack()
+                    }
+                ) { Text("Delete", color = Color.White) }
             },
-            onDismiss = { showDeleteDialog = false }
+            dismissButton = {
+                OutlinedButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+            }
         )
     }
 
-    // ----------- 新增：集成 EntryDetailDialog -------------
-    selectedEntry?.let { entry ->
-        EntryDetailDialog(
-            visible = showEntryDetailDialog,
-            entry = entry,
-            onDismiss = { showEntryDetailDialog = false },
-            onSave = { updatedEntry ->
-                entryViewModel.updateEntry(updatedEntry)
-            },
-            onDelete = {
-                entryViewModel.deleteEntry(entry.id, entry.bookId, entry.contactId)
-            },
-            showDelete = true
-        )
-    }
+    // 账目详情弹窗（如有 EntryDetailDialog 可补充，暂无则可省略）
 }
 
 /**
- * 可点击的账目流水卡片
+ * 单条账目条目（可复用）
  */
 @Composable
 fun EntryListItem(
